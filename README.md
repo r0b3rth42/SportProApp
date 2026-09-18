@@ -91,6 +91,24 @@ Planificar entrenamientos y controlar asistencia
 
 <br><br>
 
+## 4. Reglas de Negocio y Privacidad
+
+| codigo | Negocio |
+| --- | --- |
+|RN-01 | (Jerarquía de Roles): El sistema debe gestionar 5 roles principales con permisos diferenciados: Administrador (ADM), Entrenador/Director Técnico (DT), Jugador (JUG), Apoderado/Padre (PAD) y Espectador/Comunidad (COM).|
+|RN-02 | (Vinculación Obligatoria de Menores): Todo usuario registrado como Jugador menor de edad (según fecha de nacimiento) debe tener asignada obligatoriamente la cuenta de un Apoderado validado.|
+| RN-03 | (Moderación de Publicaciones y Comentarios): Todos los posts y comentarios en el muro comunitario están sujetos a reporte. Si una publicación acumula un número predefinido de reportes o es marcada por un Moderador, su visibilidad se ocultará automáticamente en el muro general hasta su revisión.|
+
+<br>
+
+| codigo | Privacidad |
+| --- | --- |
+| RP-01 | (Ocultamiento de Datos Sensibles de Menores): Ningún usuario con rol Espectador, Jugador de otro equipo o miembro de la Comunidad podrá ver datos de contacto (teléfono, correo), ficha física (peso, altura) ni teléfono de emergencia de un atleta.|
+| RP-02 | (Acceso de Apoderados): El Apoderado tiene acceso de lectura completo sobre asistencias, convocatorias y mensualidades únicamente de sus atletas asociados.|
+| RP-03 | (Filtro Anti-Exposición de Menores en Muro): Está prohibido publicar en el muro comunitario números telefónicos, direcciones exactas o documentos de identidad de atletas menores de edad.|
+
+<br><br>
+
 ## 4. Historias de Usuario
 El producto fue dividido en 15 historias de usuario, priorizadas según las funcionalidades necesarias para la plataforma
 <br>
