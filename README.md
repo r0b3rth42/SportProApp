@@ -31,7 +31,7 @@ SportPro nace de la necesidad de centralizar la gestión de una academia deporti
 
 ---
 
-<br>
+<br><br>
 
 
 
@@ -75,6 +75,9 @@ mindmap
 ```
 
 ---
+
+<br><br>
+
 ## 3. Prototipo de la solucion (APP MOBILE)
 
 A continuación, se presentan las interfaces que conforman la solución. Puede acceder al prototipo interactivo completo a través del siguiente enlace: https://www.figma.com/design/a7EoShWmu4aNmpDflKFMkr/DPA-MOBILE?node-id=0-1&p=f&t=IXfgaaehuav27ECg-0
@@ -85,6 +88,8 @@ A continuación, se presentan las interfaces que conforman la solución. Puede a
 ### Modulo Gestion Depotiva 
 Planificar entrenamientos y controlar asistencia
 <img width="1881" height="760" alt="image" src="https://github.com/user-attachments/assets/362ec514-1b38-43c3-9a57-ff8c7b868a58" />
+
+<br><br>
 
 ## 4. Historias de Usuario
 El producto fue dividido en 15 historias de usuario, priorizadas según las funcionalidades necesarias para la plataforma
@@ -686,6 +691,8 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
   **entonces** podrá cerrar el reporte sin eliminar la publicación.
 
 </details>
+
+<br><br>
 
 ## 4. Modelo Inicial de Datos
 
