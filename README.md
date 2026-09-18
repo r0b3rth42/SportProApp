@@ -39,7 +39,7 @@ SportPro nace de la necesidad de centralizar la gestión de una academia deporti
 
 
 
-## 2. Visión General del Sistema
+## 2. Alcance inicial del Sistema
 
 Sistema diseñado para administrar el ecosistema completo de una academia deportiva: gestión de usuarios, entrenamientos, convocatorias, eventos en vivo y métricas de rendimiento.
 
