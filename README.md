@@ -83,11 +83,14 @@ mindmap
 A continuación, se presentan las interfaces que conforman la solución. Puede acceder al prototipo interactivo completo a través del siguiente enlace: https://www.figma.com/design/a7EoShWmu4aNmpDflKFMkr/DPA-MOBILE?node-id=0-1&p=f&t=IXfgaaehuav27ECg-0
 
 ### Modulo Usuarios y Roles
-<img width="1006" height="667" alt="image" src="https://github.com/user-attachments/assets/8bff2f68-4611-4f4f-a2c0-522caaff67ae" />
+<img width="708" height="477" alt="image" src="https://github.com/user-attachments/assets/d3bfc60c-6715-469e-bc74-a34b028fccff" />
+
+
 
 ### Modulo Gestion Depotiva 
 Planificar entrenamientos y controlar asistencia
-<img width="1881" height="760" alt="image" src="https://github.com/user-attachments/assets/362ec514-1b38-43c3-9a57-ff8c7b868a58" />
+<img width="953" height="381" alt="image" src="https://github.com/user-attachments/assets/0c7d6cb9-fbb3-4626-92a9-5f2d492c26fa" />
+
 
 <br><br>
 
