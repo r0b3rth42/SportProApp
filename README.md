@@ -123,7 +123,7 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 | **Rol:** | `Usuario` |
 |**Nombre de Historia:** | `Autenticación y Asignación de Roles en la Plataforma` |
 | **Puntos de historia estimados:** | `2 SP` |
-|**Programador responsable:** | `Juan P.` |
+|**Programador responsable:** | `Romulo` |
 |**Prioridad:** | Alta |
 
 ---
@@ -164,7 +164,7 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 | **Rol:** | `Administrador / Entrenador` |
 |**Nombre de Historia:** | `Gestión de equipos y categorías` |
 | **Puntos de historia estimados:** | `2 SP` |
-|**Programador responsable:** | `María G.` |
+|**Programador responsable:** | `Rodrigo` |
 |**Prioridad:** | Alta |
 
 ---
@@ -204,7 +204,7 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 | **Rol:** | `Jugador / Apoderado / Entrenador` |
 |**Nombre de Historia:** | `Ficha del jugador y contacto de emergencia` |
 | **Puntos de historia estimados:** | `2 SP` |
-|**Programador responsable:** | `Carlos R.` |
+|**Programador responsable:** | `Miguel` |
 |**Prioridad:** | Alta |
 
 ---
@@ -244,7 +244,7 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 | **Rol:** | `Administrador` |
 |**Nombre de Historia:** | `Registro simulado de mensualidades` |
 | **Puntos de historia estimados:** | `1 SP` |
-|**Programador responsable:** | `Ana L.` |
+|**Programador responsable:** | `Miguel` |
 |**Prioridad:** | Media |
 
 ---
@@ -284,7 +284,7 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 | **Rol:** | `Entrenador` |
 |**Nombre de Historia:** | `Planificación de entrenamientos y ejercicios` |
 | **Puntos de historia estimados:** | `4 SP` |
-|**Programador responsable:** | `Juan P.` |
+|**Programador responsable:** | `Rodrigo` |
 |**Prioridad:** | Media |
 
 ---
@@ -324,7 +324,7 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 | **Rol:** | `Entrenador` |
 |**Nombre de Historia:** | `Control de asistencia a entrenamientos` |
 | **Puntos de historia estimados:** | `1 SP` |
-|**Programador responsable:** | `María G.` |
+|**Programador responsable:** | `Romulo` |
 |**Prioridad:** | Media |
 
 ---
@@ -364,7 +364,7 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 | **Rol:** | `Entrenador / Jugador` |
 |**Nombre de Historia:** | `Convocatoria y confirmación de disponibilidad` |
 | **Puntos de historia estimados:** | `2 SP` |
-|**Programador responsable:** | `Carlos R.` |
+|**Programador responsable:** | `Miguel` |
 |**Prioridad:** | Alta |
 
 ---
@@ -404,7 +404,7 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 | **Rol:** | `Entrenador` |
 |**Nombre de Historia:** | `Armado táctico de alineación` |
 | **Puntos de historia estimados:** | `4 SP` |
-|**Programador responsable:** | `Carlos R.` |
+|**Programador responsable:** | `Miguel` |
 |**Prioridad:** | Alta |
 
 ---
@@ -444,7 +444,7 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 | **Rol:** | `Entrenador / Operador` |
 |**Nombre de Historia:** | `Consola de registro de eventos en vivo` |
 | **Puntos de historia estimados:** | `4 SP` |
-|**Programador responsable:** | `Juan P.` |
+|**Programador responsable:** | `Roberth` |
 |**Prioridad:** | Alta |
 
 ---
@@ -484,7 +484,7 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 | **Rol:** | `Jugador / Apoderado / Espectador` |
 |**Nombre de Historia:** | `Marcador y cronología en tiempo real` |
 | **Puntos de historia estimados:** | `2 SP` |
-|**Programador responsable:** | `María G.` |
+|**Programador responsable:** | `Roberth` |
 |**Prioridad:** | Alta |
 
 ---
