@@ -138,9 +138,9 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 ### Criterios de aceptación
 
-> **Dado** que un usuario ingresa por primera vez,
-> **cuando** complete el formulario de registro con (nombre, correo, contraseña, confirmar contraseña) y seleccione su rol (ENTRENADOR, JUGADOR, APODERADO, ADMINISTRADOR),
-> **entonces** el sistema creará su cuenta y su perfil.
+> * **Dado** que un usuario ingresa por primera vez,
+> * **cuando** complete el formulario de registro con (nombre, correo, contraseña, confirmar contraseña) y seleccione su rol (ENTRENADOR, JUGADOR, APODERADO, ADMINISTRADOR),
+> * **entonces** el sistema creará su cuenta y su perfil.
 
 > **Dado** un usuario completando los datos de registro,
 > **cuando** le de click al botón crear cuenta,
@@ -187,6 +187,7 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 > **Dado** un usuario con credenciales inválidas,
 > **cuando** intente iniciar sesión,
 > **entonces** el sistema mostrará un mensaje de error claro sin revelar detalles de seguridad.
+
 
 </details>
 
