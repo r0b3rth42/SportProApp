@@ -121,7 +121,7 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 | --- | --- |
 |**Número:** | `US-01` |
 | **Rol:** | `Usuario` |
-|**Nombre de Historia:** | `Autenticación y Asignación de Roles en la Plataforma` |
+|**Nombre de Historia:** | `Registro en la Plataforma` |
 | **Puntos de historia estimados:** | `2 SP` |
 |**Programador responsable:** | `Romulo` |
 |**Prioridad:** | Alta |
@@ -138,17 +138,17 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 ### Criterios de aceptación
 
->- **Dado** que un usuario ingresa por primera vez,
-  **cuando** complete el formulario de registro con (nombre, correo, contraseña, confirmar contraseña) y seleccione su rol (ENTRENADOR, JUGADOR, APODERADO, ADMINISTRADOR),
-  **entonces** el sistema creará su cuenta y su perfil.
+> **Dado** que un usuario ingresa por primera vez,
+> **cuando** complete el formulario de registro con (nombre, correo, contraseña, confirmar contraseña) y seleccione su rol (ENTRENADOR, JUGADOR, APODERADO, ADMINISTRADOR),
+> **entonces** el sistema creará su cuenta y su perfil.
 
->- **Dado** un usuario completando los datos de registro,
-  **cuando** le de click al botón crear cuenta,
-  **entonces** la aplicación deberá validar los datos como un correo valido, contraseña.
+> **Dado** un usuario completando los datos de registro,
+> **cuando** le de click al botón crear cuenta,
+> **entonces** la aplicación deberá validar los datos como un correo valido, contraseña.
 
->- **Dado** un usuario que use un email que ya existe en el sistema asociado a un usuario creado,
-  **cuando** intente crear su usuario,
-  **entonces** el sistema validará y mostrará un mensaje de error "El usuario ya existe con ese email".
+> **Dado** un usuario que use un email que ya existe en el sistema asociado a un usuario creado,
+> **cuando** intente crear su usuario,
+> **entonces** el sistema validará y mostrará un mensaje de error "El usuario ya existe con ese email".
 
 </details>
 
@@ -180,13 +180,13 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 ### Criterios de aceptación
 
 
->- **Dado** un usuario registrado como Jugador menor de edad,
-  **cuando** inicie sesión,
-  **entonces** la aplicación le solicitará vincular el correo de su apoderado.
+> **Dado** un usuario registrado como Jugador menor de edad,
+> **cuando** inicie sesión,
+> **entonces** la aplicación le solicitará vincular el correo de su apoderado.
 
->- **Dado** un usuario con credenciales inválidas,
-  **cuando** intente iniciar sesión,
-  **entonces** el sistema mostrará un mensaje de error claro sin revelar detalles de seguridad.
+> **Dado** un usuario con credenciales inválidas,
+> **cuando** intente iniciar sesión,
+> **entonces** el sistema mostrará un mensaje de error claro sin revelar detalles de seguridad.
 
 </details>
 
@@ -310,13 +310,13 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 #### **Criterios de aceptación:**
 
->-* **Dado** que el usuario ingresa al formulario de registro/edición de ficha,
-**cuando** complete o modifique los campos de *Datos Personales* (fecha de nacimiento) y *Datos Deportivos* (posición principal/secundaria, pie hábil, dorsal) con formatos válidos,
-**entonces** el sistema debe guardar o actualizar los cambios y mostrarlos reflejados en la vista de la ficha técnica.
+> **Dado** que el usuario ingresa al formulario de registro/edición de ficha,
+> **cuando** complete o modifique los campos de *Datos Personales* (fecha de nacimiento) y *Datos Deportivos* (posición principal/secundaria, pie hábil, dorsal) con formatos válidos,
+> **entonces** el sistema debe guardar o actualizar los cambios y mostrarlos reflejados en la vista de la ficha técnica.
   
->-* **Dado** que el usuario ingresa datos en blanco o con formato inválido en los campos obligatorios,
-**cuando** intente guardar la ficha,
-**entonces** el sistema debe mostrar mensajes de validación indicando los errores sin persistir la información.
+> **Dado** que el usuario ingresa datos en blanco o con formato inválido en los campos obligatorios,
+> **cuando** intente guardar la ficha,
+> **entonces** el sistema debe mostrar mensajes de validación indicando los errores sin persistir la información.
 
 ---
 
@@ -345,13 +345,13 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 #### **Criterios de aceptación:**
 
->-* **Dado** que un usuario autorizado edita el perfil de un jugador,
-**cuando** ingrese los datos de un contacto de emergencia (nombre, parentesco y número telefónico válido),
-**entonces** el sistema debe asociar dicho contacto al jugador.
+> **Dado** que un usuario autorizado edita el perfil de un jugador,
+> **cuando** ingrese los datos de un contacto de emergencia (nombre, parentesco y número telefónico válido),
+> **entonces** el sistema debe asociar dicho contacto al jugador.
 
->-* **Dado** que se consulta la ficha de un jugador existente,
-**cuando** el usuario acceda a la sección de emergencia,
-**entonces** el sistema debe mostrar la tarjeta/botón de *Contacto de Emergencia* permitiendo la interacción directa (p. ej., llamada telefónica rápida al hacer clic).
+> **Dado** que se consulta la ficha de un jugador existente,
+> **cuando** el usuario acceda a la sección de emergencia,
+> **entonces** el sistema debe mostrar la tarjeta/botón de *Contacto de Emergencia* permitiendo la interacción directa (p. ej., llamada telefónica rápida al hacer clic).
 
 ---
 ---
@@ -381,17 +381,17 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 ### Criterios de aceptación
 
->- **Dado** un jugador registrado,
-  **cuando** el administrador registre una mensualidad como pagada,
-  **entonces** el sistema deberá almacenar el periodo, monto y estado del pago.
+> **Dado** un jugador registrado,
+> **cuando** el administrador registre una mensualidad como pagada,
+> **entonces** el sistema deberá almacenar el periodo, monto y estado del pago.
 
->- **Dado** un jugador con mensualidades registradas,
-  **cuando** el administrador consulte su información,
-  **entonces** deberá visualizar el estado de sus pagos.
+> **Dado** un jugador con mensualidades registradas,
+> **cuando** el administrador consulte su información,
+> **entonces** deberá visualizar el estado de sus pagos.
 
->- **Dado** una mensualidad pendiente,
-  **cuando** se consulte el estado del jugador,
-  **entonces** el sistema deberá mostrarla como pendiente.
+> **Dado** una mensualidad pendiente,
+> **cuando** se consulte el estado del jugador,
+> **entonces** el sistema deberá mostrarla como pendiente.
 </details>
 
 ---
@@ -421,17 +421,17 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 ### Criterios de aceptación
 
->- **Dado** un entrenador autorizado,
-  **cuando** cree una sesión indicando fecha, hora, equipo y objetivo,
-  **entonces** el sistema deberá registrar el entrenamiento.
+> **Dado** un entrenador autorizado,
+> **cuando** cree una sesión indicando fecha, hora, equipo y objetivo,
+> **entonces** el sistema deberá registrar el entrenamiento.
 
->- **Dado** un entrenamiento creado,
-  **cuando** el entrenador agregue ejercicios,
-  **entonces** estos deberán quedar asociados a la sesión correspondiente.
+> **Dado** un entrenamiento creado,
+> **cuando** el entrenador agregue ejercicios,
+ **entonces** estos deberán quedar asociados a la sesión correspondiente.
 
->- **Dado** un entrenamiento planificado,
-  **cuando** el entrenador consulte su agenda,
-  **entonces** deberá visualizar las sesiones programadas y sus ejercicios.
+> **Dado** un entrenamiento planificado,
+> **cuando** el entrenador consulte su agenda,
+> **entonces** deberá visualizar las sesiones programadas y sus ejercicios.
 </details>
 
 ---
@@ -461,17 +461,17 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 ### Criterios de aceptación
 
->- **Dado** un entrenamiento programado,
-  **cuando** el entrenador consulte la lista de jugadores,
-  **entonces** podrá marcar a cada jugador como presente o ausente.
+> **Dado** un entrenamiento programado,
+> **cuando** el entrenador consulte la lista de jugadores,
+> **entonces** podrá marcar a cada jugador como presente o ausente.
 
->- **Dado** que se registre la asistencia,
-  **cuando** se guarde la información,
-  **entonces** el sistema deberá asociarla al entrenamiento y jugador correspondiente.
+> **Dado** que se registre la asistencia,
+> **cuando** se guarde la información,
+> **entonces** el sistema deberá asociarla al entrenamiento y jugador correspondiente.
 
->- **Dado** un entrenamiento con asistencia registrada,
-  **cuando** se consulte posteriormente,
-  **entonces** deberán visualizarse los estados registrados.
+> **Dado** un entrenamiento con asistencia registrada,
+> **cuando** se consulte posteriormente,
+> **entonces** deberán visualizarse los estados registrados.
 </details>
 
 ---
@@ -501,17 +501,17 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 ### Criterios de aceptación
 
->- **Dado** un partido programado,
-  **cuando** el entrenador seleccione los jugadores convocados,
-  **entonces** el sistema deberá registrar la convocatoria.
+> **Dado** un partido programado,
+> **cuando** el entrenador seleccione los jugadores convocados,
+> **entonces** el sistema deberá registrar la convocatoria.
 
->- **Dado** un jugador convocado,
-  **cuando** consulte la convocatoria,
-  **entonces** podrá indicar si está disponible o no.
+> **Dado** un jugador convocado,
+> **cuando** consulte la convocatoria,
+> **entonces** podrá indicar si está disponible o no.
 
->- **Dado** que los jugadores respondan la convocatoria,
-  **cuando** el entrenador consulte el partido,
-  **entonces** podrá visualizar la disponibilidad de cada convocado.
+> **Dado** que los jugadores respondan la convocatoria,
+> **cuando** el entrenador consulte el partido,
+> **entonces** podrá visualizar la disponibilidad de cada convocado.
 </details>
 
 ---
@@ -541,17 +541,17 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 ### Criterios de aceptación
 
->- **Dado** un partido con jugadores disponibles,
-  **cuando** el entrenador cree una alineación,
-  **entonces** podrá seleccionar los jugadores que participarán.
+> **Dado** un partido con jugadores disponibles,
+> **cuando** el entrenador cree una alineación,
+ **entonces** podrá seleccionar los jugadores que participarán.
 
->- **Dado** una alineación creada,
-  **cuando** el entrenador asigne posiciones,
-  **entonces** el sistema deberá mostrar visualmente la distribución de los jugadores.
+> **Dado** una alineación creada,
+> **cuando** el entrenador asigne posiciones,
+> **entonces** el sistema deberá mostrar visualmente la distribución de los jugadores.
 
->- **Dado** una alineación válida,
-  **cuando** el entrenador la guarde,
-  **entonces** deberá quedar asociada al partido correspondiente.
+> **Dado** una alineación válida,
+> **cuando** el entrenador la guarde,
+> **entonces** deberá quedar asociada al partido correspondiente.
 </details>
 
 ---
@@ -581,17 +581,17 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 ### Criterios de aceptación
 
->- **Dado** un partido iniciado,
-  **cuando** el operador registre un evento,
-  **entonces** el sistema deberá guardar el tipo de evento, jugador involucrado y minuto correspondiente.
+> **Dado** un partido iniciado,
+> **cuando** el operador registre un evento,
+> **entonces** el sistema deberá guardar el tipo de evento, jugador involucrado y minuto correspondiente.
 
->- **Dado** un evento registrado,
-  **cuando** se confirme la acción,
-  **entonces** deberá aparecer inmediatamente en la consola del partido.
+> **Dado** un evento registrado,
+> **cuando** se confirme la acción,
+> **entonces** deberá aparecer inmediatamente en la consola del partido.
 
->- **Dado** que el partido esté finalizado,
-  **cuando** se intente registrar un nuevo evento,
-  **entonces** el sistema deberá impedir la operación.
+> **Dado** que el partido esté finalizado,
+> **cuando** se intente registrar un nuevo evento,
+> **entonces** el sistema deberá impedir la operación.
 </details>
 
 ---
@@ -621,17 +621,17 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 ### Criterios de aceptación
 
->- **Dado** un partido en curso,
-  **cuando** se registre un evento que modifique el marcador,
-  **entonces** el marcador deberá actualizarse.
+> **Dado** un partido en curso,
+> **cuando** se registre un evento que modifique el marcador,
+> **entonces** el marcador deberá actualizarse.
 
->- **Dado** un partido en curso,
-  **cuando** se registre un evento,
-  **entonces** deberá aparecer en la cronología del partido.
+> **Dado** un partido en curso,
+> **cuando** se registre un evento,
+> **entonces** deberá aparecer en la cronología del partido.
 
->- **Dado** un usuario consultando el partido,
-  **cuando** existan nuevos eventos,
-  **entonces** deberá visualizar la información actualizada.
+> **Dado** un usuario consultando el partido,
+> **cuando** existan nuevos eventos,
+> **entonces** deberá visualizar la información actualizada.
 </details>
 
 ---
