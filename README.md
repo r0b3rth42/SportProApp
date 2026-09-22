@@ -194,6 +194,8 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 <br><br>
 
+<details open><summary><b>US-03</b></summary>
+
 |  |  |
 | --- | --- |
 | **Número:** | `US-03` |
@@ -237,6 +239,7 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 <br><br>
 
+<details open><summary><b>US-04</b></summary>
 
 
 |  |  |
@@ -275,138 +278,91 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 ---
 
+<br><br>
 
+<details open><summary><b>US-03</b></summary>
+  Aquí tienes el desglose de la historia de usuario **US-05** dividida en dos historias independientes, de alcance más acotado (1 SP cada una) y siguiendo la metodología **INVEST** (independientes, negociables, valiosas, estimables, pequeñas y testeables).
 
+---
 
+<br><br>
+
+<details open><summary><b>US-05</b></summary>
 
 |  |  |
 | --- | --- |
 | **Número:** | `US-05` |
-| **Rol:** | `Entrenador / Administrador` |
-| **Nombre de Historia:** | `Vincular Jugadores a un Equipo y Categoría` |
-| **Puntos de historia estimados:** | `3 SP` |
-| **Programador responsable:** | `Romulo` |
+| **Rol:** | `Jugador / Apoderado / Entrenador` |
+| **Nombre de Historia:** | `Registro y actualización de información personal y deportiva del jugador` |
+| **Puntos de historia estimados:** | `1 SP` |
+| **Programador responsable:** | `Miguel` |
 | **Prioridad:** | Alta |
 
 ---
 
-**Descripción:**
+#### **Descripción:**
 
-> **Como** Entrenador o Administrador,
-> **quiero** enviar invitaciones o agregar jugadores registrados a una categoría específica mediante un código o correo,
-> **para** conformar el plantel oficial y gestionar sus perfiles dentro del equipo.
-
----
-
-### Criterios de aceptación
-
-> * **Dado** un Entrenador dentro de una categoría específica del equipo,
-> **cuando** genere un código único de unión de equipo o busque a un jugador por correo e intente añadirlo,
-> **entonces** el sistema vinculará al jugador a la plantilla de esa categoría en estado "Activo" o "Invitado".
-> 
-> 
-
-> * **Dado** un Jugador que intenta unirse usando un código de equipo inválido o expirado,
-> **cuando** confirme el ingreso,
-> **entonces** la aplicación mostrará el mensaje "Código de equipo no encontrado o no válido".
-> 
-> 
-
-> * **Dado** un jugador menor de edad que es asignado a un equipo,
-> **cuando** se complete la vinculación,
-> **entonces** el sistema enviará una notificación/alerta al correo del apoderado asociado garantizando las reglas de privacidad y consentimiento.
-> 
->
+> **Como** jugador o apoderado,
+> **quiero** registrar y actualizar la información personal y deportiva del jugador (posición, pie hábil y dorsal),
+> **para** mantener su perfil técnico actualizado dentro de la academia.
 
 ---
 
-<br><br>
+#### **Criterios de aceptación:**
 
-<details open><summary><b>US-03</b></summary>
-
-| | |
-| --- | --- |
-|**Número:** | `US-02` |
-| **Rol:** | `Administrador / Entrenador` |
-|**Nombre de Historia:** | `Gestión de equipos y categorías` |
-| **Puntos de historia estimados:** | `2 SP` |
-|**Programador responsable:** | `Rodrigo` |
-|**Prioridad:** | Alta |
-
----
-
-**Descripción:**
-
-> **Como** administrador o entrenador de SportPro,  
-> **quiero** crear y gestionar equipos y categorías deportivas,  
-> **para** organizar a los jugadores según su edad, nivel y grupo de entrenamiento.
-
----
-
-### Criterios de aceptación
-
->- **Dado** un usuario autorizado,
-  **cuando** registre un nuevo equipo indicando nombre, categoría y descripción,
-  **entonces** el sistema deberá crear el equipo y mostrarlo en el listado correspondiente.
-
->- **Dado** un equipo existente,
-  **cuando** el administrador modifique sus datos,
-  **entonces** el sistema deberá actualizar la información del equipo.
-
->- **Dado** un usuario sin permisos de administración,
-  **cuando** intente modificar un equipo,
-  **entonces** el sistema deberá impedir la operación y mostrar un mensaje de acceso no autorizado.
-</details>
-
----
-
-<br><br>
-
-<details open><summary><b>US-03</b></summary>
+>-* **Dado** que el usuario ingresa al formulario de registro/edición de ficha,
+**cuando** complete o modifique los campos de *Datos Personales* (fecha de nacimiento) y *Datos Deportivos* (posición principal/secundaria, pie hábil, dorsal) con formatos válidos,
+**entonces** el sistema debe guardar o actualizar los cambios y mostrarlos reflejados en la vista de la ficha técnica.
   
-| | |
+>-* **Dado** que el usuario ingresa datos en blanco o con formato inválido en los campos obligatorios,
+**cuando** intente guardar la ficha,
+**entonces** el sistema debe mostrar mensajes de validación indicando los errores sin persistir la información.
+
+---
+
+<br> <br>
+
+<details open><summary><b>US-06</b></summary>
+
+|  |  |
 | --- | --- |
-|**Número:** | `US-03` |
+| **Número:** | `US-06` |
 | **Rol:** | `Jugador / Apoderado / Entrenador` |
-|**Nombre de Historia:** | `Ficha del jugador y contacto de emergencia` |
-| **Puntos de historia estimados:** | `2 SP` |
-|**Programador responsable:** | `Miguel` |
-|**Prioridad:** | Alta |
+| **Nombre de Historia:** | `Gestión del contacto de emergencia del jugador` |
+| **Puntos de historia estimados:** | `1 SP` |
+| **Programador responsable:** | `Miguel` |
+| **Prioridad:** | Alta |
 
 ---
 
-**Descripción:**
+#### **Descripción:**
 
-> **Como** jugador o apoderado,  
-> **quiero** registrar y consultar la información personal y deportiva del jugador, incluyendo un contacto de emergencia,  
-> **para** mantener actualizada su ficha dentro de la academia.
+> **Como** jugador, apoderado o entrenador,
+> **quiero** registrar, actualizar y consultar un contacto de emergencia asociado a la ficha del jugador,
+> **para** disponer de un canal directo de comunicación ante cualquier eventualidad médica o imprevisto en entrenamientos/partidos.
 
 ---
 
-### Criterios de aceptación
+#### **Criterios de aceptación:**
 
->- **Dado** un jugador registrado,
-  **cuando** complete los datos solicitados de su ficha,
-  **entonces** el sistema deberá almacenar la información correctamente.
+>-* **Dado** que un usuario autorizado edita el perfil de un jugador,
+**cuando** ingrese los datos de un contacto de emergencia (nombre, parentesco y número telefónico válido),
+**entonces** el sistema debe asociar dicho contacto al jugador.
 
->- **Dado** una ficha existente,
-  **cuando** el usuario autorizado modifique sus datos,
-  **entonces** el sistema deberá actualizar la información.
+>-* **Dado** que se consulta la ficha de un jugador existente,
+**cuando** el usuario acceda a la sección de emergencia,
+**entonces** el sistema debe mostrar la tarjeta/botón de *Contacto de Emergencia* permitiendo la interacción directa (p. ej., llamada telefónica rápida al hacer clic).
 
->- **Dado** que se registra un contacto de emergencia,
-  **cuando** se ingresen datos válidos,
-  **entonces** el sistema deberá asociarlos al jugador correspondiente.
-</details>
-
+---
 ---
 
 <br><br>
 
-<details open><summary><b>US-04</b></summary>
+<details open><summary><b>US-07</b></summary>
 
 | | |
 | --- | --- |
-|**Número:** | `US-04` |
+|**Número:** | `US-07` |
 | **Rol:** | `Administrador` |
 |**Nombre de Historia:** | `Registro simulado de mensualidades` |
 | **Puntos de historia estimados:** | `1 SP` |
@@ -442,11 +398,11 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 <br><br>
 
-<details open><summary><b>US-05</b></summary>
+<details open><summary><b>US-08</b></summary>
 
 | | |
 | --- | --- |
-|**Número:** | `US-05` |
+|**Número:** | `US-08` |
 | **Rol:** | `Entrenador` |
 |**Nombre de Historia:** | `Planificación de entrenamientos y ejercicios` |
 | **Puntos de historia estimados:** | `4 SP` |
@@ -482,11 +438,11 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 <br><br>
 
-<details open><summary><b>US-06</b></summary>
+<details open><summary><b>US-09</b></summary>
 
 | | |
 | --- | --- |
-|**Número:** | `US-06` |
+|**Número:** | `US-09` |
 | **Rol:** | `Entrenador` |
 |**Nombre de Historia:** | `Control de asistencia a entrenamientos` |
 | **Puntos de historia estimados:** | `1 SP` |
@@ -522,11 +478,11 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 <br><br>
 
-<details open><summary><b>US-07</b></summary>
+<details open><summary><b>US-10</b></summary>
 
 | | |
 | --- | --- |
-|**Número:** | `US-07` |
+|**Número:** | `US-10` |
 | **Rol:** | `Entrenador / Jugador` |
 |**Nombre de Historia:** | `Convocatoria y confirmación de disponibilidad` |
 | **Puntos de historia estimados:** | `2 SP` |
@@ -562,11 +518,11 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 <br><br>
 
-<details open><summary><b>US-08</b></summary>
+<details open><summary><b>US-11</b></summary>
 
 | | |
 | --- | --- |
-|**Número:** | `US-08` |
+|**Número:** | `US-11` |
 | **Rol:** | `Entrenador` |
 |**Nombre de Historia:** | `Armado táctico de alineación` |
 | **Puntos de historia estimados:** | `4 SP` |
@@ -602,11 +558,11 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 <br><br>
 
-<details open><summary><b>US-09</b></summary>
+<details open><summary><b>US-12</b></summary>
 
 | | |
 | --- | --- |
-|**Número:** | `US-09` |
+|**Número:** | `US-12` |
 | **Rol:** | `Entrenador / Operador` |
 |**Nombre de Historia:** | `Consola de registro de eventos en vivo` |
 | **Puntos de historia estimados:** | `4 SP` |
@@ -642,11 +598,11 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 <br><br>
 
-<details open><summary><b>US-10</b></summary>
+<details open><summary><b>US-13</b></summary>
 
 | | |
 | --- | --- |
-|**Número:** | `US-10` |
+|**Número:** | `US-13` |
 | **Rol:** | `Jugador / Apoderado / Espectador` |
 |**Nombre de Historia:** | `Marcador y cronología en tiempo real` |
 | **Puntos de historia estimados:** | `2 SP` |
@@ -682,11 +638,11 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 <br><br>
 
-<details open><summary><b>US-11</b></summary>
+<details open><summary><b>US-14</b></summary>
 
 | | |
 | --- | --- |
-|**Número:** | `US-11` |
+|**Número:** | `US-14` |
 | **Rol:** | `Entrenador / Administrador` |
 |**Nombre de Historia:** | `Corrección y trazabilidad de eventos` |
 | **Puntos de historia estimados:** | `2 SP` |
@@ -722,11 +678,11 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 <br><br>
 
-<details open><summary><b>US-12</b></summary>
+<details open><summary><b>US-15</b></summary>
 
 | | |
 | --- | --- |
-|**Número:** | `US-12` |
+|**Número:** | `US-15` |
 | **Rol:** | `Entrenador` |
 |**Nombre de Historia:** | `Resumen narrativo con IA y aprobación DT` |
 | **Puntos de historia estimados:** | `4 SP` |
@@ -762,11 +718,11 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 <br><br>
 
-<details open><summary><b>US-13</b></summary>
+<details open><summary><b>US-16</b></summary>
 
 | | |
 | --- | --- |
-|**Número:** | `US-13` |
+|**Número:** | `US-16` |
 | **Rol:** | `Usuario registrado` |
 |**Nombre de Historia:** | `Muro de comunidad, posts y comentarios` |
 | **Puntos de historia estimados:** | `2 SP` |
@@ -802,11 +758,11 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 <br><br>
 
-<details open><summary><b>US-14</b></summary>
+<details open><summary><b>US-17</b></summary>
 
 | | |
 | --- | --- |
-|**Número:** | `US-14` |
+|**Número:** | `US-17` |
 | **Rol:** | `Entrenador / Administrador / Jugador` |
 |**Nombre de Historia:** | `Avisos de pruebas y convocatorias abiertas` |
 | **Puntos de historia estimados:** | `2 SP` |
@@ -842,11 +798,11 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 <br><br>
 
-<details open><summary><b>US-15</b></summary>
+<details open><summary><b>US-18</b></summary>
 
 | | |
 | --- | --- |
-|**Número:** | `US-15` |
+|**Número:** | `US-18` |
 | **Rol:** | `Moderador / Administrador` |
 |**Nombre de Historia:** | `Moderación y reporte de publicaciones` |
 | **Puntos de historia estimados:** | `1 SP` |
