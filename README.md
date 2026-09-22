@@ -130,8 +130,8 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 **Descripción:**
 
-> **Como** usuario nuevo de SportPro (Entrenador, Jugador, Apoderado o Administrador),  
-> **quiero** registrarme e iniciar sesión con correo/contraseña o proveedor federado,  
+> **Como** usuario nuevo de SportPro,  
+> **quiero** registrarme como (Entrenador, Jugador, Apoderado o Administrador),  
 > **para** acceder a las funcionalidades correspondientes a mis permisos dentro de la academia.
 
 ---
@@ -139,8 +139,46 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 ### Criterios de aceptación
 
 >- **Dado** que un usuario ingresa por primera vez,
-  **cuando** complete el formulario de registro con datos válidos y seleccione su rol (DT, JUG, PAD, ADM),
-  **entonces** el sistema creará su cuenta en Firebase Auth y su perfil en Firestore.
+  **cuando** complete el formulario de registro con (nombre, correo, contraseña, confirmar contraseña) y seleccione su rol (ENTRENADOR, JUGADOR, APODERADO, ADMINISTRADOR),
+  **entonces** el sistema creará su cuenta y su perfil.
+
+>- **Dado** un usuario completando los datos de registro,
+  **cuando** le de click al botón crear cuenta,
+  **entonces** la aplicación deberá validar los datos como un correo valido, contraseña.
+
+>- **Dado** un usuario que use un email que ya existe en el sistema asociado a un usuario creado,
+  **cuando** intente crear su usuario,
+  **entonces** el sistema validará y mostrará un mensaje de error "El usuario ya existe con ese email".
+
+</details>
+
+--- 
+
+<br><br>
+
+<details open><summary><b>US-02</b></summary>
+
+| | |
+| --- | --- |
+|**Número:** | `US-02` |
+| **Rol:** | `Usuario` |
+|**Nombre de Historia:** | `Inicio de sesión` |
+| **Puntos de historia estimados:** | `2 SP` |
+|**Programador responsable:** | `Romulo` |
+|**Prioridad:** | Alta |
+
+---
+
+**Descripción:**
+
+> **Como** usuario nuevo de SportPro (Entrenador, Jugador, Apoderado o Administrador),  
+> **quiero** iniciar sesión con correo/contraseña y mi rol,  
+> **para** acceder a las funcionalidades correspondientes a mis permisos dentro de la academia.
+
+---
+
+### Criterios de aceptación
+
 
 >- **Dado** un usuario registrado como Jugador menor de edad,
   **cuando** inicie sesión,
@@ -156,7 +194,135 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 <br><br>
 
-<details open><summary><b>US-02</b></summary>
+|  |  |
+| --- | --- |
+| **Número:** | `US-03` |
+| **Rol:** | `Entrenador / Administrador` |
+| **Nombre de Historia:** | `Registro e Inicialización de Equipo o Academia` |
+| **Puntos de historia estimados:** | `3 SP` |
+| **Programador responsable:** | `Romulo` |
+| **Prioridad:** | Alta |
+
+---
+
+**Descripción:**
+
+> **Como** Entrenador o Administrador de SportPro,
+> **quiero** registrar una nueva academia o equipo de fútbol con sus datos básicos,
+> **para** comenzar a gestionar la estructura, categorías y miembros del club dentro de la plataforma.
+
+---
+
+### Criterios de aceptación
+
+> * **Dado** un Entrenador o Administrador autenticado,
+> **cuando** complete el formulario de creación con (nombre de la academia/equipo, escudo/logo, ciudad),
+> **entonces** el sistema guardará la información .
+> 
+> 
+
+> * **Dado** un usuario intentando registrar un equipo,
+> **cuando** presione el botón de guardar sin completar los campos obligatorios (nombre de la academia y ciudad),
+> **entonces** el sistema no procesará el registro y mostrará mensajes de validación indicando los campos requeridos.
+> 
+> 
+
+> * **Dado** un Administrador o Entrenador,
+> **cuando** ingrese un nombre de equipo que ya existe registrado bajo su misma gestión,
+> **entonces** el sistema mostrará un mensaje de alerta: "Ya cuentas con una academia o equipo registrado con este nombre".
+> 
+> 
+
+---
+
+<br><br>
+
+
+
+|  |  |
+| --- | --- |
+| **Número:** | `US-04` |
+| **Rol:** | `Entrenador / Administrador` |
+| **Nombre de Historia:** | `Gestión de Categorías del Equipo` |
+| **Puntos de historia estimados:** | `2 SP` |
+| **Programador responsable:** | `Romulo` |
+| **Prioridad:** | Alta |
+
+---
+
+**Descripción:**
+
+> **Como** Entrenador o Administrador,
+> **quiero** crear y organizar sub-divisiones (ej. Sub-10, Sub-15, Primera) dentro del equipo o academia,
+> **para** estructurar las planillas de jugadores y agrupar los entrenamientos según rangos de edad o nivel competitivo.
+
+---
+
+### Criterios de aceptación
+
+> * **Dado** que el Administrador o Entrenador se encuentra en el perfil de su equipo,
+> **cuando** agregue una nueva categoría especificando su nombre (ej. Sub-12) y año límite de nacimiento,
+> **entonces** la categoría se añadirá al panel del equipo y quedará disponible para asignar jugadores.
+> 
+> 
+
+
+> * **Dado** que un Entrenador intenta crear una categoría duplicada en el mismo equipo (ej. dos categorías "Sub-15"),
+> **cuando** guarde los cambios,
+> **entonces** el sistema mostrará el error "La categoría ya existe en este equipo".
+> 
+> 
+
+---
+
+
+
+
+
+|  |  |
+| --- | --- |
+| **Número:** | `US-05` |
+| **Rol:** | `Entrenador / Administrador` |
+| **Nombre de Historia:** | `Vincular Jugadores a un Equipo y Categoría` |
+| **Puntos de historia estimados:** | `3 SP` |
+| **Programador responsable:** | `Romulo` |
+| **Prioridad:** | Alta |
+
+---
+
+**Descripción:**
+
+> **Como** Entrenador o Administrador,
+> **quiero** enviar invitaciones o agregar jugadores registrados a una categoría específica mediante un código o correo,
+> **para** conformar el plantel oficial y gestionar sus perfiles dentro del equipo.
+
+---
+
+### Criterios de aceptación
+
+> * **Dado** un Entrenador dentro de una categoría específica del equipo,
+> **cuando** genere un código único de unión de equipo o busque a un jugador por correo e intente añadirlo,
+> **entonces** el sistema vinculará al jugador a la plantilla de esa categoría en estado "Activo" o "Invitado".
+> 
+> 
+
+> * **Dado** un Jugador que intenta unirse usando un código de equipo inválido o expirado,
+> **cuando** confirme el ingreso,
+> **entonces** la aplicación mostrará el mensaje "Código de equipo no encontrado o no válido".
+> 
+> 
+
+> * **Dado** un jugador menor de edad que es asignado a un equipo,
+> **cuando** se complete la vinculación,
+> **entonces** el sistema enviará una notificación/alerta al correo del apoderado asociado garantizando las reglas de privacidad y consentimiento.
+> 
+>
+
+---
+
+<br><br>
+
+<details open><summary><b>US-03</b></summary>
 
 | | |
 | --- | --- |
