@@ -354,7 +354,7 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 > **entonces** el sistema debe mostrar la tarjeta/botón de *Contacto de Emergencia* permitiendo la interacción directa (p. ej., llamada telefónica rápida al hacer clic).
 
 ---
----
+
 
 <br><br>
 
@@ -363,7 +363,7 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 | | |
 | --- | --- |
 |**Número:** | `US-07` |
-| **Rol:** | `Administrador` |
+| **Rol:** | `Jugador` |
 |**Nombre de Historia:** | `Registro simulado de mensualidades` |
 | **Puntos de historia estimados:** | `1 SP` |
 |**Programador responsable:** | `Miguel` |
@@ -373,17 +373,46 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 
 **Descripción:**
 
-> **Como** administrador,  
-> **quiero** registrar y consultar el estado de las mensualidades de los jugadores,  
-> **para** llevar un control básico de los pagos de la academia.
+> **Como** Jugador,  
+> **quiero** realizar el pago de las mensualidades correspondiente al mes,  
+> **para** estar al día con los pagos.
 
 ---
 
 ### Criterios de aceptación
 
 >- **Dado** un jugador registrado,<br>
-> **cuando** el administrador registre una mensualidad como pagada,<br>
+> **cuando** el jugador registre una mensualidad como pagada,<br>
 > **entonces** el sistema deberá almacenar el periodo, monto y estado del pago.
+
+</details>
+
+---
+
+<br><br>
+
+<details open><summary><b>US-08</b></summary>
+
+| | |
+| --- | --- |
+|**Número:** | `US-07` |
+| **Rol:** | `Administrador` |
+|**Nombre de Historia:** | `Visualizacion de mensualidades` |
+| **Puntos de historia estimados:** | `1 SP` |
+|**Programador responsable:** | `Miguel` |
+|**Prioridad:** | Media |
+
+---
+
+**Descripción:**
+
+> **Como** administrador,  
+> **quiero** consultar el estado de las mensualidades de los jugadores,  
+> **para** llevar un control básico de los pagos de la academia.
+
+---
+
+### Criterios de aceptación
 
 >- **Dado** un jugador con mensualidades registradas,<br>
 > **cuando** el administrador consulte su información,<br>
@@ -414,7 +443,7 @@ El producto fue dividido en 15 historias de usuario, priorizadas según las func
 **Descripción:**
 
 > **Como** entrenador,  
-> **quiero** planificar sesiones de entrenamiento y asociar ejercicios a cada sesión,  
+> **quiero** planificar sesiones de entrenamiento,  
 > **para** organizar las actividades deportivas de los jugadores.
 
 ---
