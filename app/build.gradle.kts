@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -54,6 +55,11 @@ dependencies {
     implementation("androidx.compose.material:material-icons-core:1.7.8")
     implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.androidx.material3)
+
+    implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
