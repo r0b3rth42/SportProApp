@@ -1,5 +1,6 @@
 package com.example.sportproapp.data.remote
 
+import com.example.sportproapp.data.model.TeamModel
 import com.example.sportproapp.data.model.User
 import com.example.sportproapp.data.model.UserRole
 import com.example.sportproapp.data.model.UserStatus
@@ -33,6 +34,21 @@ object FirebaseAuthManager {
             auth.signInWithEmailAndPassword(email, password).await()
             Result.success(Unit)
         }catch (e: Exception){
+            Result.failure(e)
+        }
+    }
+
+    suspend fun registerTeam(teamName: String, category: String, entrenador: String): Result<Unit> {
+
+        val team = TeamModel(name = teamName, category = category, coachName = entrenador )
+
+        return try {
+            val docRef = firestore.collection("teams").document()
+            val teamtoSave = team.copy(id = docRef.id)
+
+            docRef.set(teamtoSave).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }

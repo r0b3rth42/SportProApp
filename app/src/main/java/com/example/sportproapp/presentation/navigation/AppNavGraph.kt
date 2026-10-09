@@ -7,7 +7,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.sportproapp.presentation.auth.LoginScreen
 import com.example.sportproapp.presentation.auth.RegisterScreen
-import com.example.sportproapp.presentation.home.HomeScreen
+import com.example.sportproapp.presentation.home.AdminHomeScreen
+import com.example.sportproapp.presentation.home.PlayerHomeScreen
+import com.example.sportproapp.presentation.teams.CreateTeamScreen
+import com.example.sportproapp.presentation.teams.TeamsListScreen
 
 
 @Composable
@@ -16,10 +19,13 @@ fun AppNavGraph () {
 
     NavHost(
         navController = navController,
-        startDestination = "register"
+        startDestination = "login"
     ) {
         composable("register") { RegisterScreen(navController) }
         composable("login") { LoginScreen(navController) }
-        composable("home") { HomeScreen(navController) }
+        composable("home") { PlayerHomeScreen(navController) }
+        composable("adminHome") { AdminHomeScreen(navController) }
+        composable("teams") { TeamsListScreen(navController) }
+        composable("teams-create") { CreateTeamScreen(navController) }
     }
 }

@@ -42,7 +42,7 @@ data class UpcomingEvent(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(
+fun PlayerHomeScreen(
     navController: NavController,
     userName: String = "Carlos Ortiz",
     userRole: String = "JUG" // "DT", "JUG", "PAD", "ADM"
@@ -363,31 +363,24 @@ fun getRoleBadgeText(role: String): String {
     }
 }
 
+// --- 1. ACCIONES RÁPIDAS (Solo Módulos de Entrenamientos y Partidos) ---
 fun getRoleQuickActions(role: String): List<QuickAction> {
     return when (role) {
         "DT" -> listOf(
             QuickAction("Tomar Asistencia", Icons.Outlined.Checklist, "attendance"),
-            QuickAction("Crear Convocatoria", Icons.Outlined.GroupAdd, "create_match"),
-            QuickAction("Ficha Jugador", Icons.Outlined.Badge, "player_list"),
-            QuickAction("Reportes", Icons.Outlined.BarChart, "reports")
+            QuickAction("Crear Convocatoria", Icons.Outlined.GroupAdd, "create_match")
         )
         "PAD" -> listOf(
             QuickAction("Mis Representados", Icons.Outlined.FamilyRestroom, "my_minors"),
-            QuickAction("Pagos y Cuotas", Icons.Outlined.Payments, "payments"),
-            QuickAction("Asistencia", Icons.Outlined.EventAvailable, "attendance_view"),
-            QuickAction("Contactar DT", Icons.Outlined.Chat, "chat_dt")
+            QuickAction("Pagos y Cuotas", Icons.Outlined.Payments, "payments")
         )
         "ADM" -> listOf(
             QuickAction("Cobranzas", Icons.Outlined.PointOfSale, "admin_payments"),
-            QuickAction("Gestión Usuarios", Icons.Outlined.AdminPanelSettings, "manage_users"),
-            QuickAction("Categorías", Icons.Outlined.Category, "categories"),
-            QuickAction("Anuncios", Icons.Outlined.Campaign, "broadcast")
+            QuickAction("Gestión Usuarios", Icons.Outlined.AdminPanelSettings, "manage_users")
         )
-        else -> listOf( // JUG (Jugador)
-            QuickAction("Mi Ficha", Icons.Outlined.Badge, "my_profile"),
-            QuickAction("Asistencia", Icons.Outlined.CheckCircleOutline, "my_attendance"),
-            QuickAction("Estadísticas", Icons.Outlined.QueryStats, "my_stats"),
-            QuickAction("Horarios", Icons.Outlined.CalendarMonth, "schedule")
+        else -> listOf( // JUG (Jugador): Módulos solicitados
+            QuickAction("Entrenamientos", Icons.Outlined.FitnessCenter, "trainings_screen"),
+            QuickAction("Partidos", Icons.Outlined.SportsSoccer, "matches_screen")
         )
     }
 }
