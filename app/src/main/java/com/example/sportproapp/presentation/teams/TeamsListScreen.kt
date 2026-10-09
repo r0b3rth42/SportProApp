@@ -48,7 +48,8 @@ fun TeamsListScreen(
         listOf(
             Team("1", "Tigres Academia", 18, "Carlos Ortiz", Color(0xFFFF2A6D)),
             Team("2", "Halcones Norte", 22, "Andrés Silva", PrimaryLime),
-            Team("3", "Leones Sub-13", 16, "Carlos Ortiz", Color(0xFF007AFF))
+            Team("3", "Leones Sub-13", 16, "Carlos Ortiz", Color(0xFF007AFF)),
+            Team("4", "Sin asignar", 1000, "Sin asignar", Color(0xFF343333))
         )
     }
 
@@ -184,7 +185,15 @@ fun TeamsListScreen(
                 }
 
                 items(filteredTeams) { team ->
-                    TeamCardItem(team = team, onClick = { onTeamClick(team.id) })
+                    TeamCardItem(team = team, onClick = { //onTeamClick(team.id)
+                        //navController.navigate("jugador")
+                        if (team.name != "Sin asignar") {
+                            onTeamClick(team.id)
+                        } else {
+                            navController.navigate("jugador")
+                        }
+                    })
+
                 }
 
                 item { Spacer(modifier = Modifier.height(20.dp)) }

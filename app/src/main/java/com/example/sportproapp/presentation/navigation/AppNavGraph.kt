@@ -9,6 +9,7 @@ import com.example.sportproapp.presentation.auth.LoginScreen
 import com.example.sportproapp.presentation.auth.RegisterScreen
 import com.example.sportproapp.presentation.home.AdminHomeScreen
 import com.example.sportproapp.presentation.home.PlayerHomeScreen
+import com.example.sportproapp.presentation.jugador.TeamDetailScreen
 import com.example.sportproapp.presentation.teams.CreateTeamScreen
 import com.example.sportproapp.presentation.teams.TeamsListScreen
 
@@ -19,7 +20,7 @@ fun AppNavGraph () {
 
     NavHost(
         navController = navController,
-        startDestination = "login"
+        startDestination = "jugador"
     ) {
         composable("register") { RegisterScreen(navController) }
         composable("login") { LoginScreen(navController) }
@@ -27,5 +28,6 @@ fun AppNavGraph () {
         composable("adminHome") { AdminHomeScreen(navController) }
         composable("teams") { TeamsListScreen(navController) }
         composable("teams-create") { CreateTeamScreen(navController) }
+        composable("jugador") { TeamDetailScreen(navController) }
     }
 }
