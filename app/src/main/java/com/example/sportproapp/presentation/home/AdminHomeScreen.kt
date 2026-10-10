@@ -68,7 +68,7 @@ fun AdminHomeScreen(
                 val navItems = listOf(
                     Triple("Inicio", Icons.Filled.Home, 0),
                     Triple("Equipos", Icons.Outlined.Group, 1),
-                    Triple("Entrenamientos", Icons.Outlined.Cancel, 2),
+                    Triple("Entrenamientos", Icons.Outlined.ModelTraining, 2),
                     Triple("Partidos", Icons.Outlined.EmojiEvents, 3),
                     Triple("Comunidad", Icons.Outlined.ChatBubbleOutline, 4)
                 )
@@ -79,7 +79,12 @@ fun AdminHomeScreen(
                         selected = isSelected,
                         onClick = {
                             selectedBottomTab = index
-                            navController.navigate("teams")
+                            when (index) {
+                                1 -> navController.navigate("teams")
+                                2 -> navController.navigate("entrenamiento")
+                                else -> navController.navigate("teams")
+                            }
+
                         },
                         icon = { Icon(icon, contentDescription = label) },
                         label = {
