@@ -10,7 +10,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -34,77 +33,21 @@ data class RecentActivity(
     val iconTint: Color = PrimaryLime
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminHomeScreen(
     navController: NavController,
     userName: String = "Carlos",
     userTitle: String = "Entrenador • Club Tigres"
 ) {
-    var selectedBottomTab by remember { mutableIntStateOf(0) }
-
-    Scaffold(
-        containerColor = DarkBackground,
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { /* Acción para agregar evento / registrar */ },
-                containerColor = PrimaryLime,
-                contentColor = DarkBackground,
-                shape = CircleShape,
-                modifier = Modifier.size(60.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Agregar",
-                    modifier = Modifier.size(32.dp)
-                )
-            }
-        },
-        bottomBar = {
-            NavigationBar(
-                containerColor = DarkCardBackground,
-                tonalElevation = 8.dp
-            ) {
-                val navItems = listOf(
-                    Triple("Inicio", Icons.Filled.Home, 0),
-                    Triple("Equipos", Icons.Outlined.Group, 1),
-                    Triple("Entrenamientos", Icons.Outlined.Cancel, 2),
-                    Triple("Partidos", Icons.Outlined.EmojiEvents, 3),
-                    Triple("Comunidad", Icons.Outlined.ChatBubbleOutline, 4)
-                )
-
-                navItems.forEach { (label, icon, index) ->
-                    val isSelected = selectedBottomTab == index
-                    NavigationBarItem(
-                        selected = isSelected,
-                        onClick = {
-                            selectedBottomTab = index
-                            navController.navigate("teams")
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = {
-                            Text(
-                                text = label,
-                                fontSize = 11.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                            )
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = PrimaryLime,
-                            selectedTextColor = PrimaryLime,
-                            indicatorColor = Color.Transparent,
-                            unselectedIconColor = TextMuted,
-                            unselectedTextColor = TextMuted
-                        )
-                    )
-                }
-            }
-        }
-    ) { innerPadding ->
+    // Usamos un Box principal para contener el fondo oscuro y ubicar el FAB libremente arriba
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(DarkBackground)
+    ) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
                 .padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -239,7 +182,26 @@ fun AdminHomeScreen(
                 ActivityCardItem(activity = activity)
             }
 
-            item { Spacer(modifier = Modifier.height(20.dp)) }
+            // Espacio adicional abajo para evitar que el contenido final quede tapado por la barra de navegación global
+            item { Spacer(modifier = Modifier.height(90.dp)) }
+        }
+
+        // --- 4. BOTÓN FLOTANTE (FAB) ---
+        FloatingActionButton(
+            onClick = { /* Acción para agregar evento / registrar */ },
+            containerColor = PrimaryLime,
+            contentColor = DarkBackground,
+            shape = CircleShape,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 20.dp, bottom = 20.dp)
+                .size(60.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Agregar",
+                modifier = Modifier.size(32.dp)
+            )
         }
     }
 }

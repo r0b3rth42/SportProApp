@@ -5,7 +5,10 @@ data class User (
     val name: String = "",
     val email: String = "",
     val role: UserRole = UserRole.JUG,
-    val status: UserStatus = UserStatus.ACTIVE
+    val status: UserStatus = UserStatus.ACTIVE,
+    val guardianEmail: String? = "",
+    val guardianId: String? = "",
+    val photoUrl: String? = ""
 )
 
 enum class UserRole {
