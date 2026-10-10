@@ -11,13 +11,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -39,7 +37,6 @@ enum class PlayerStatus(val text: String, val color: Color) {
     INJURED("Lesionado", Color(0xFFF44336))   // Rojo
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TeamDetailScreen(
     navController: NavController,
@@ -48,75 +45,22 @@ fun TeamDetailScreen(
     playerCount: Int = 18,
     season: String = "Temp. 2026"
 ) {
-    var selectedBottomTab by remember { mutableIntStateOf(1) } // "Equipos" seleccionado por defecto
     var selectedTab by remember { mutableIntStateOf(0) } // Tabs: Jugadores, Calendario, Estadísticas
-
     val tabs = listOf("Jugadores", "Calendario", "Estadísticas")
 
-    Scaffold(
-        containerColor = DarkBackground,
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { /* Acción para agregar jugador */ },
-                containerColor = PrimaryLime,
-                contentColor = DarkBackground,
-                shape = CircleShape,
-                modifier = Modifier.size(60.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Agregar Jugador",
-                    modifier = Modifier.size(32.dp)
-                )
-            }
-        },
-        bottomBar = {
-            NavigationBar(
-                containerColor = DarkCardBackground,
-                tonalElevation = 8.dp
-            ) {
-                val navItems = listOf(
-                    Triple("Inicio", Icons.Filled.Home, 0),
-                    Triple("Equipos", Icons.Outlined.Group, 1),
-                    Triple("Entrenamientos", Icons.Outlined.Cancel, 2),
-                    Triple("Partidos", Icons.Outlined.EmojiEvents, 3),
-                    Triple("Comunidad", Icons.Outlined.ChatBubbleOutline, 4)
-                )
-
-                navItems.forEach { (label, icon, index) ->
-                    val isSelected = selectedBottomTab == index
-                    NavigationBarItem(
-                        selected = isSelected,
-                        onClick = {
-                            selectedBottomTab = index
-                            // Aquí manejarías la navegación real
-                            if (index == 0) navController.popBackStack()
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = {
-                            Text(
-                                text = label,
-                                fontSize = 11.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                            )
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = PrimaryLime,
-                            selectedTextColor = PrimaryLime,
-                            indicatorColor = Color.Transparent,
-                            unselectedIconColor = TextMuted,
-                            unselectedTextColor = TextMuted
-                        )
-                    )
-                }
-            }
-        }
-    ) { innerPadding ->
+    // Contenedor principal con fondo oscuro
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(DarkBackground)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(horizontal = 20.dp)
         ) {
+            Spacer(modifier = Modifier.height(20.dp))
+
             // --- 1. CABECERA DEL EQUIPO ---
             TeamHeaderCard(
                 teamName = teamName,
@@ -124,10 +68,7 @@ fun TeamDetailScreen(
                 playerCount = playerCount,
                 season = season,
                 onBackClick = {
-                    // Navegar a la ruta "teams"
                     navController.navigate("teams") {
-                        // Opcional: Limpia la pila de navegación para evitar que "teams"
-                        // se abra múltiples veces si el usuario presiona atrás repetidamente
                         popUpTo("teams") { inclusive = true }
                     }
                 },
@@ -140,15 +81,13 @@ fun TeamDetailScreen(
             CustomTabs(
                 tabs = tabs,
                 selectedTabIndex = selectedTab,
-                onTabSelected = { selectedTab = it },
-                modifier = Modifier.padding(horizontal = 20.dp)
+                onTabSelected = { selectedTab = it }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // --- 3. LISTA DE JUGADORES ---
             if (selectedTab == 0) {
-                // Lista mock de jugadores
                 val players = listOf(
                     Player("1", "Santiago Méndez", "Mediocampista", 10, PlayerStatus.ACTIVE),
                     Player("2", "Mateo López", "Delantero", 7, PlayerStatus.ACTIVE),
@@ -156,20 +95,43 @@ fun TeamDetailScreen(
                 )
 
                 LazyColumn(
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     items(players) { player ->
                         PlayerCardItem(player = player)
                     }
-                    item { Spacer(modifier = Modifier.height(80.dp)) } // Espacio para el FAB
+                    // Espacio adicional abajo para evitar que el contenido sea tapado por la barra inferior global
+                    item { Spacer(modifier = Modifier.height(90.dp)) }
                 }
             } else {
-                // Placeholder para las otras pestañas
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = 90.dp),
+                    contentAlignment = Alignment.Center
+                ) {
                     Text("Contenido de ${tabs[selectedTab]}", color = TextMuted)
                 }
             }
+        }
+
+        // --- 4. BOTÓN FLOTANTE (FAB) ---
+        FloatingActionButton(
+            onClick = { /* Acción para agregar jugador */ },
+            containerColor = PrimaryLime,
+            contentColor = DarkBackground,
+            shape = CircleShape,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 20.dp, bottom = 20.dp)
+                .size(60.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Agregar Jugador",
+                modifier = Modifier.size(32.dp)
+            )
         }
     }
 }
@@ -187,7 +149,6 @@ fun TeamHeaderCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            //.padding(horizontal = 20.dp, top = 20.dp)
             .border(1.dp, CardBorderColor, RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = DarkCardBackground)
@@ -245,7 +206,6 @@ fun TeamHeaderCard(
             Spacer(modifier = Modifier.height(8.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Etiqueta de Categoría
                 Text(
                     text = category,
                     color = PrimaryLime,
@@ -291,7 +251,7 @@ fun CustomTabs(
                     .clickable { onTabSelected(index) }
                     .background(
                         if (isSelected) DarkCardBackground else Color.Transparent,
-                        shape = if(isSelected) RoundedCornerShape(8.dp) else RoundedCornerShape(0.dp)
+                        shape = if (isSelected) RoundedCornerShape(8.dp) else RoundedCornerShape(0.dp)
                     )
                     .border(
                         width = if (isSelected) 1.dp else 0.dp,
@@ -328,7 +288,6 @@ fun PlayerCardItem(player: Player) {
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Avatar Placeholder
             Box(
                 modifier = Modifier
                     .size(48.dp)
@@ -359,7 +318,6 @@ fun PlayerCardItem(player: Player) {
                 )
             }
 
-            // Estado
             Text(
                 text = player.status.text,
                 color = player.status.color,

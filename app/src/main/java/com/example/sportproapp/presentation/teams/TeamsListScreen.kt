@@ -174,7 +174,14 @@ fun TeamsListScreen(
                             }
                         } else {
                             items(filteredTeams) { team ->
-                                TeamCardItem(team = team, onClick = { onTeamClick(team.id) })
+                                TeamCardItem(team = team, onClick = {
+                                    if(team.name == "Sin Asignar") {
+                                        navController.navigate("jugador")
+                                    } else {
+                                        onTeamClick(team.id)
+                                    }
+
+                                })
                             }
                         }
 
