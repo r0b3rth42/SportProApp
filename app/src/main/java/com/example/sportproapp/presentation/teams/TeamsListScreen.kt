@@ -33,7 +33,6 @@ data class Team(
     val badgeTag: String = "+ sub-división"
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TeamsListScreen(
     navController: NavController,
@@ -42,75 +41,19 @@ fun TeamsListScreen(
     viewModel: TeamsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    var selectedBottomTab by remember { mutableIntStateOf(1) } // 1 = Equipos
 
     // Recolectar el estado reactivo del ViewModel
     val uiState by viewModel.uiState.collectAsState()
 
-    Scaffold(
-        containerColor = DarkBackground,
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    navController.navigate("teams-create")
-                },
-                containerColor = PrimaryLime,
-                contentColor = DarkBackground,
-                shape = CircleShape,
-                modifier = Modifier.size(60.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Agregar Equipo",
-                    modifier = Modifier.size(32.dp)
-                )
-            }
-        },
-        bottomBar = {
-            NavigationBar(
-                containerColor = DarkCardBackground,
-                tonalElevation = 8.dp
-            ) {
-                val navItems = listOf(
-                    Triple("Inicio", Icons.Outlined.Home, 0),
-                    Triple("Equipos", Icons.Filled.Group, 1),
-                    Triple("Entrenamientos", Icons.Outlined.Cancel, 2),
-                    Triple("Partidos", Icons.Outlined.EmojiEvents, 3),
-                    Triple("Comunidad", Icons.Outlined.ChatBubbleOutline, 4)
-                )
-
-                navItems.forEach { (label, icon, index) ->
-                    val isSelected = selectedBottomTab == index
-                    NavigationBarItem(
-                        selected = isSelected,
-                        onClick = {
-
-                            selectedBottomTab = index
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = {
-                            Text(
-                                text = label,
-                                fontSize = 11.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                            )
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = PrimaryLime,
-                            selectedTextColor = PrimaryLime,
-                            indicatorColor = Color.Transparent,
-                            unselectedIconColor = TextMuted,
-                            unselectedTextColor = TextMuted
-                        )
-                    )
-                }
-            }
-        }
-    ) { innerPadding ->
+    // 💡 Usamos un Box principal para mantener el fondo y permitir que el FloatingActionButton flote libremente arriba
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(DarkBackground)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
                 .padding(horizontal = 20.dp)
         ) {
             // --- 1. CABECERA Y FILTRO ---
@@ -171,6 +114,7 @@ fun TeamsListScreen(
                 )
             )
 
+            // --- 3. MANEJADOR DE ESTADOS ---
             when (val state = uiState) {
                 is TeamsUiState.Loading -> {
                     Box(
@@ -225,10 +169,31 @@ fun TeamsListScreen(
                             }
                         }
 
-                        item { Spacer(modifier = Modifier.height(20.dp)) }
+                        // Espacio adicional abajo para que el contenido no quede tapado por la barra inferior global
+                        item { Spacer(modifier = Modifier.height(90.dp)) }
                     }
                 }
             }
+        }
+
+        // --- 4. BOTÓN FLOTANTE (FAB) POSICIONADO ARRIBA DEL CONTENEDOR ---
+        FloatingActionButton(
+            onClick = {
+                navController.navigate("teams-create")
+            },
+            containerColor = PrimaryLime,
+            contentColor = DarkBackground,
+            shape = CircleShape,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 20.dp, bottom = 20.dp)
+                .size(60.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Agregar Equipo",
+                modifier = Modifier.size(32.dp)
+            )
         }
     }
 }
@@ -317,7 +282,7 @@ fun TeamCardItem(
                     // Entrenador
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = Icons.Outlined.Cancel, // Ícono circular de perfil/detalles
+                            imageVector = Icons.Outlined.Cancel,
                             contentDescription = null,
                             tint = TextMuted,
                             modifier = Modifier.size(16.dp)

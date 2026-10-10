@@ -1,9 +1,17 @@
 package com.example.sportproapp.presentation.navigation
 
-
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.sportproapp.presentation.auth.LoginScreen
 import com.example.sportproapp.presentation.auth.RegisterScreen
@@ -12,20 +20,58 @@ import com.example.sportproapp.presentation.home.PlayerHomeScreen
 import com.example.sportproapp.presentation.teams.CreateTeamScreen
 import com.example.sportproapp.presentation.teams.TeamsListScreen
 
-
 @Composable
-fun AppNavGraph () {
+fun AppNavGraph(
+    userRole: String // "ADM", "DT", "JUG", "PAD"
+) {
     val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
 
-    NavHost(
-        navController = navController,
-        startDestination = "login"
-    ) {
-        composable("register") { RegisterScreen(navController) }
-        composable("login") { LoginScreen(navController) }
-        composable("home") { PlayerHomeScreen(navController) }
-        composable("adminHome") { AdminHomeScreen(navController) }
-        composable("teams") { TeamsListScreen(navController) }
-        composable("teams-create") { CreateTeamScreen(navController) }
+    // Definimos las pantallas que DEBEN mostrar la barra inferior
+    val bottomBarRoutes = listOf("home", "teams", "trainings", "matches", "community")
+
+    Scaffold(
+        bottomBar = {
+            // Solo muestra la BottomBar si la ruta actual está en la lista de pantallas principales
+            if (currentRoute in bottomBarRoutes) {
+                AppBottomNavigationBar(
+                    navController = navController,
+                    currentRoute = currentRoute
+                )
+            }
+        }
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = "login",
+            // 💡 IMPORTANTE: Aplicar el innerPadding aquí evita que la barra inferior tape el contenido
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            // --- Pantalla Principal (Se adapta según el rol del usuario) ---
+            composable("home") {
+                when (userRole) {
+                    "ADM" -> AdminHomeScreen(navController)
+                    "DT" -> AdminHomeScreen(navController) // Puedes cambiarlo a CoachHomeScreen si lo tienes creado
+                    "JUG" -> AdminHomeScreen(navController)
+                    "PAD" -> AdminHomeScreen(navController) // Puedes cambiarlo a TutorHomeScreen si lo tienes creado
+                    else -> AdminHomeScreen(navController)
+                }
+            }
+
+            composable("register") { RegisterScreen(navController) }
+            composable("login") { LoginScreen(navController) }
+            composable("adminHome") { AdminHomeScreen(navController) }
+            composable("teams") { TeamsListScreen(navController) }
+            composable("teams-create") { CreateTeamScreen(navController) }
+        }
+    }
+}
+
+// Pantalla temporal por si navegas a secciones que aún están en desarrollo
+@Composable
+fun PlaceholderScreen(title: String) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(text = title, color = androidx.compose.ui.graphics.Color.White)
     }
 }

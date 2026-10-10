@@ -37,7 +37,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -61,8 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.sportproapp.data.remote.FirebaseAuthManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import com.example.sportproapp.presentation.components.LoadingScreen
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -71,11 +69,13 @@ fun LoginScreen(
     navController: NavController,
     onForgotPasswordClick: () -> Unit = {}
 ) {
-
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var rememberMe by remember { mutableStateOf(false) }
+
+    // Estado para controlar la pantalla de carga
+    var isLoading by remember { mutableStateOf(false) }
 
     // Estados para control de errores visuales
     var emailError by remember { mutableStateOf(false) }
@@ -202,7 +202,7 @@ fun LoginScreen(
                             }
                         )
 
-                        // Opciones adicionales: Recordarme y Recupear contraseña
+                        // Opciones adicionales
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -239,7 +239,7 @@ fun LoginScreen(
 
                         Spacer(modifier = Modifier.height(4.dp))
 
-                        // Botón de Ingreso con Validación
+                        // Botón de Ingreso
                         Button(
                             onClick = {
                                 emailError = email.isBlank() || !email.contains("@")
@@ -250,16 +250,20 @@ fun LoginScreen(
                                         snackBarHostState.showSnackbar("Por favor completa los campos correctamente")
                                     }
                                 } else {
-                                    CoroutineScope(Dispatchers.Main).launch {
+                                    isLoading = true
+                                    scope.launch {
                                         val result = FirebaseAuthManager.loginUser(email, password)
+                                        isLoading = false
                                         result.fold(
                                             onSuccess = {
-                                                navController.navigate("adminHome")
+                                                navController.navigate("home") {
+                                                    popUpTo("login") { inclusive = true }
+                                                }
                                             },
                                             onFailure = { exception ->
                                                 Toast.makeText(
                                                     context,
-                                                    exception.message ?: "Error al registrar usuario",
+                                                    exception.message ?: "Error al iniciar sesión",
                                                     Toast.LENGTH_LONG
                                                 ).show()
                                             }
@@ -312,11 +316,15 @@ fun LoginScreen(
                     }
                 }
             }
+
+            // Muestra la pantalla de espera mientras se procesa la autenticación
+            if (isLoading) {
+                LoadingScreen(message = "Iniciando sesión...")
+            }
         }
     }
 }
 
-// --- COMPONENTE DE TEXTFIELD ADAPTADO CON ERRORES ---
 @Composable
 fun CustomLoginTextField(
     label: String,
