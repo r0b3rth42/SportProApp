@@ -33,8 +33,12 @@ fun AppNavGraph(
 
     Scaffold(
         bottomBar = {
-            // Solo muestra la BottomBar si la ruta actual está en la lista de pantallas principales
-            if (currentRoute in bottomBarRoutes) {
+            // Verificamos si la ruta actual comienza con alguna de las rutas principales
+            val showBottomBar = bottomBarRoutes.any { route ->
+                currentRoute?.startsWith(route) == true
+            }
+
+            if (showBottomBar) {
                 AppBottomNavigationBar(
                     navController = navController,
                     currentRoute = currentRoute
@@ -49,9 +53,10 @@ fun AppNavGraph(
             modifier = Modifier.padding(innerPadding)
         ) {
             // --- Pantalla Principal (Se adapta según el rol del usuario) ---
-            composable("home") {
+            composable("home/{userName}") { backStackEntry ->
+                val userName = backStackEntry.arguments?.getString("userName") ?: "Usuario"
                 when (userRole) {
-                    "ADM" -> AdminHomeScreen(navController)
+                    "ADM" -> AdminHomeScreen(navController, userName = userName)
                     "DT" -> AdminHomeScreen(navController) // Puedes cambiarlo a CoachHomeScreen si lo tienes creado
                     "JUG" -> AdminHomeScreen(navController)
                     "PAD" -> AdminHomeScreen(navController) // Puedes cambiarlo a TutorHomeScreen si lo tienes creado
@@ -61,7 +66,6 @@ fun AppNavGraph(
 
             composable("register") { RegisterScreen(navController) }
             composable("login") { LoginScreen(navController) }
-            composable("adminHome") { AdminHomeScreen(navController) }
             composable("teams") { TeamsListScreen(navController) }
             composable("teams-create") { CreateTeamScreen(navController) }
         }

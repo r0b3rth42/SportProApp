@@ -253,10 +253,19 @@ fun LoginScreen(
                                     isLoading = true
                                     scope.launch {
                                         val result = FirebaseAuthManager.loginUser(email, password)
-                                        isLoading = false
+
                                         result.fold(
                                             onSuccess = {
-                                                navController.navigate("home") {
+                                                val uid = FirebaseAuthManager.getCurrentUserId();
+
+                                                // Consultamos el nombre guardado en la colección "users"
+                                                val userName = if (uid != null) {
+                                                    FirebaseAuthManager.getUserNameFromFirestore(uid) ?: "Usuario"
+                                                } else {
+                                                    "Usuario"
+                                                }
+                                                isLoading = false
+                                                navController.navigate("home/$userName") {
                                                     popUpTo("login") { inclusive = true }
                                                 }
                                             },
