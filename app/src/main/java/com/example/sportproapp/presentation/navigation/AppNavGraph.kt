@@ -33,7 +33,7 @@ fun AppNavGraph(
     val currentRoute = navBackStackEntry?.destination?.route
 
     // Definimos las pantallas que DEBEN mostrar la barra inferior
-    val bottomBarRoutes = listOf("home", "teams", "trainings", "matches", "community")
+    val bottomBarRoutes = listOf("home", "teams", "entrenamiento", "matches", "community")
 
     Scaffold(
         bottomBar = {

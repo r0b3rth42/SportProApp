@@ -10,17 +10,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.ModelTraining
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.ChatBubbleOutline
-import androidx.compose.material.icons.outlined.EmojiEvents
-import androidx.compose.material.icons.outlined.Group
-import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -54,78 +45,15 @@ fun EntrenamientosScreen(
             Entrenamiento("3", "19:30 - 21:00", "Fútbol Femenino Mayor", "Gimnasio & Arena", 3, EstadoEntrenamiento.COMPLETADO)
         )
     }
-    var selectedBottomTab by remember { mutableIntStateOf(2) }
 
-    Scaffold(
-        containerColor = BackgroundColor,
-        floatingActionButton = {
-            // Botón (+) Verde
-            FloatingActionButton(
-                onClick = onAddClick,
-                containerColor = PrimaryGreen,
-                contentColor = Color.Black,
-                shape = CircleShape,
-                modifier = Modifier.padding(bottom = 8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Agregar Entrenamiento",
-                    modifier = Modifier.size(32.dp)
-                )
-            }
-        },
-        bottomBar = {
-            // Barra de navegación inferior
-            NavigationBar(
-                containerColor = DarkCardBackground,
-                tonalElevation = 8.dp
-            ) {
-                val navItems = listOf(
-                    Triple("Inicio", Icons.Outlined.Home, 0),
-                    Triple("Equipos", Icons.Outlined.Group, 1),
-                    Triple("Entrenamientos", Icons.Filled.ModelTraining, 2),
-                    Triple("Partidos", Icons.Outlined.EmojiEvents, 3),
-                    Triple("Comunidad", Icons.Outlined.ChatBubbleOutline, 4)
-                )
-
-                navItems.forEach { (label, icon, index) ->
-                    val isSelected = selectedBottomTab == index
-                    NavigationBarItem(
-                        selected = isSelected,
-                        onClick = {
-                            selectedBottomTab = index
-                            when (index) {
-                                0 -> navController.navigate("home")
-                                1 -> navController.navigate("teams")
-                                2 -> navController.navigate("entrenamiento")
-                                else -> navController.navigate("teams")
-                            }
-
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = {
-                            Text(
-                                text = label,
-                                fontSize = 11.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                            )
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = PrimaryLime,
-                            selectedTextColor = PrimaryLime,
-                            indicatorColor = Color.Transparent,
-                            unselectedIconColor = TextMuted,
-                            unselectedTextColor = TextMuted
-                        )
-                    )
-                }
-            }
-        }
-    ) { innerPadding ->
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BackgroundColor)
+    ) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
                 .padding(horizontal = 16.dp)
         ) {
             // Header: Título y Subtítulo
@@ -167,6 +95,27 @@ fun EntrenamientosScreen(
                 TarjetaEntrenamiento(entrenamiento)
                 Spacer(modifier = Modifier.height(12.dp))
             }
+
+            // Margen para evitar solapamiento con la barra de navegación global
+            item { Spacer(modifier = Modifier.height(90.dp)) }
+        }
+
+        // Botón (+) Verde
+        FloatingActionButton(
+            onClick = onAddClick,
+            containerColor = PrimaryGreen,
+            contentColor = Color.Black,
+            shape = CircleShape,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 16.dp, bottom = 20.dp)
+                .size(60.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Agregar Entrenamiento",
+                modifier = Modifier.size(32.dp)
+            )
         }
     }
 }

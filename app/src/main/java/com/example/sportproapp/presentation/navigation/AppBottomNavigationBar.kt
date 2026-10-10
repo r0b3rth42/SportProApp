@@ -33,7 +33,7 @@ fun AppBottomNavigationBar(
         val navItems = listOf(
             Triple("Inicio", Icons.Outlined.Home, "home"),
             Triple("Equipos", Icons.Outlined.Group, "teams"),
-            Triple("Entrenamientos", Icons.Outlined.Cancel, "trainings"),
+            Triple("entrenamiento", Icons.Outlined.Cancel, "entrenamiento"),
             Triple("Partidos", Icons.Outlined.EmojiEvents, "matches"),
             Triple("Comunidad", Icons.Outlined.ChatBubbleOutline, "community")
         )
