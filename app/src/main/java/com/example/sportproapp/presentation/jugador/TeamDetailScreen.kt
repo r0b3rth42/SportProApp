@@ -99,7 +99,10 @@ fun TeamDetailScreen(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(players) { player ->
-                        PlayerCardItem(player = player)
+                        PlayerCardItem(
+                            player = player,
+                            onClick = { navController.navigate("player-profile/${player.id}") }
+                        )
                     }
                     // Espacio adicional abajo para evitar que el contenido sea tapado por la barra inferior global
                     item { Spacer(modifier = Modifier.height(90.dp)) }
@@ -274,10 +277,14 @@ fun CustomTabs(
 
 // --- COMPONENTE: ITEM DE JUGADOR ---
 @Composable
-fun PlayerCardItem(player: Player) {
+fun PlayerCardItem(
+    player: Player,
+    onClick: () -> Unit = {}
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable { onClick() }
             .border(1.dp, CardBorderColor, RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = DarkCardBackground)

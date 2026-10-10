@@ -17,6 +17,7 @@ import com.example.sportproapp.presentation.auth.LoginScreen
 import com.example.sportproapp.presentation.auth.RegisterScreen
 import com.example.sportproapp.presentation.home.AdminHomeScreen
 import com.example.sportproapp.presentation.home.PlayerHomeScreen
+import com.example.sportproapp.presentation.jugador.PlayerProfileScreen
 import com.example.sportproapp.presentation.jugador.TeamDetailScreen
 import com.example.sportproapp.presentation.teams.CreateTeamScreen
 import com.example.sportproapp.presentation.teams.TeamsListScreen
@@ -71,6 +72,10 @@ fun AppNavGraph(
             composable("teams") { TeamsListScreen(navController) }
             composable("teams-create") { CreateTeamScreen(navController) }
             composable("jugador") { TeamDetailScreen(navController) }
+            composable("player-profile/{playerId}") { backStackEntry ->
+                val playerId = backStackEntry.arguments?.getString("playerId") ?: "1"
+                PlayerProfileScreen(navController, playerId = playerId)
+            }
         }
     }
 }
