@@ -80,6 +80,7 @@ fun AdminHomeScreen(
                         onClick = {
                             selectedBottomTab = index
                             when (index) {
+                                0 -> navController.navigate("home")
                                 1 -> navController.navigate("teams")
                                 2 -> navController.navigate("entrenamiento")
                                 else -> navController.navigate("teams")
