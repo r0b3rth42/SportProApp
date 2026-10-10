@@ -15,6 +15,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.sportproapp.presentation.auth.LoginScreen
 import com.example.sportproapp.presentation.auth.RegisterScreen
+import com.example.sportproapp.presentation.entrenamiento.CrearEntrenamientoScreen
+import com.example.sportproapp.presentation.entrenamiento.EntrenamientosScreen
 import com.example.sportproapp.presentation.home.AdminHomeScreen
 import com.example.sportproapp.presentation.home.PlayerHomeScreen
 import com.example.sportproapp.presentation.jugador.PlayerProfileScreen
@@ -32,7 +34,7 @@ fun AppNavGraph(
     val currentRoute = navBackStackEntry?.destination?.route
 
     // Definimos las pantallas que DEBEN mostrar la barra inferior
-    val bottomBarRoutes = listOf("home", "teams", "trainings", "matches", "community")
+    val bottomBarRoutes = listOf("home", "teams", "entrenamiento", "matches", "community")
 
     Scaffold(
         bottomBar = {
@@ -72,9 +74,22 @@ fun AppNavGraph(
             composable("teams") { TeamsListScreen(navController) }
             composable("teams-create") { CreateTeamScreen(navController) }
             composable("jugador") { TeamDetailScreen(navController) }
-            composable("player-profile/{playerId}") { backStackEntry ->
-                val playerId = backStackEntry.arguments?.getString("playerId") ?: "1"
-                PlayerProfileScreen(navController, playerId = playerId)
+            // 1. Pantalla principal de Entrenamientos
+            composable("entrenamiento") { EntrenamientosScreen(
+                navController,
+                onAddClick = {
+                    // Al pulsar +, navegamos a la pantalla de creación
+                    navController.navigate("entrenamiento-create")            }
+            ) }
+            // 2. Nueva pantalla para Crear Entrenamiento
+            composable("entrenamiento-create") {
+                CrearEntrenamientoScreen(
+                    navController = navController,
+                    onCrearClick = {
+                        // Al guardar, regresamos a la pantalla anterior
+                        navController.popBackStack()
+                    }
+                )
             }
         }
     }
