@@ -38,19 +38,14 @@ data class Team(
 fun TeamsListScreen(
     navController: NavController,
     onTeamClick: (String) -> Unit = {},
-    onAddTeamClick: () -> Unit = {}
+    onAddTeamClick: () -> Unit = {},
+    viewModel: TeamsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedBottomTab by remember { mutableIntStateOf(1) } // 1 = Equipos
 
-    // Lista mock de equipos basada en tu diseño
-    val teamsList = remember {
-        listOf(
-            Team("1", "Tigres Academia", 18, "Carlos Ortiz", Color(0xFFFF2A6D)),
-            Team("2", "Halcones Norte", 22, "Andrés Silva", PrimaryLime),
-            Team("3", "Leones Sub-13", 16, "Carlos Ortiz", Color(0xFF007AFF))
-        )
-    }
+    // Recolectar el estado reactivo del ViewModel
+    val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         containerColor = DarkBackground,
@@ -88,7 +83,10 @@ fun TeamsListScreen(
                     val isSelected = selectedBottomTab == index
                     NavigationBarItem(
                         selected = isSelected,
-                        onClick = { selectedBottomTab = index },
+                        onClick = {
+
+                            selectedBottomTab = index
+                        },
                         icon = { Icon(icon, contentDescription = label) },
                         label = {
                             Text(
@@ -173,21 +171,63 @@ fun TeamsListScreen(
                 )
             )
 
-            // --- 3. LISTA DE TARJETAS DE EQUIPO ---
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(14.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                val filteredTeams = teamsList.filter {
-                    it.name.contains(searchQuery, ignoreCase = true) ||
-                            it.coachName.contains(searchQuery, ignoreCase = true)
+            when (val state = uiState) {
+                is TeamsUiState.Loading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = PrimaryLime)
+                    }
                 }
-
-                items(filteredTeams) { team ->
-                    TeamCardItem(team = team, onClick = { onTeamClick(team.id) })
+                is TeamsUiState.Error -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Error: ${state.message}",
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 14.sp
+                        )
+                    }
                 }
+                is TeamsUiState.Success -> {
+                    val teamsList = state.teams
 
-                item { Spacer(modifier = Modifier.height(20.dp)) }
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(14.dp),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        val filteredTeams = teamsList.filter {
+                            it.name.contains(searchQuery, ignoreCase = true) ||
+                                    it.coachName.contains(searchQuery, ignoreCase = true)
+                        }
+
+                        if (filteredTeams.isEmpty()) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 40.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "No se encontraron equipos registrados",
+                                        color = TextMuted,
+                                        fontSize = 14.sp
+                                    )
+                                }
+                            }
+                        } else {
+                            items(filteredTeams) { team ->
+                                TeamCardItem(team = team, onClick = { onTeamClick(team.id) })
+                            }
+                        }
+
+                        item { Spacer(modifier = Modifier.height(20.dp)) }
+                    }
+                }
             }
         }
     }

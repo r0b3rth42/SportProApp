@@ -79,7 +79,22 @@ fun AdminHomeScreen(
                         selected = isSelected,
                         onClick = {
                             selectedBottomTab = index
-                            navController.navigate("teams")
+                            if(label == "Inicio") {
+                                navController.navigate("adminHome")
+                            }
+                            if(label == "Equipos") {
+                                navController.navigate("teams")
+                            }
+                            if(label == "Entrenamientos") {
+
+                            }
+                            if(label == "Partidos") {
+
+                            }
+                            if(label == "Comunidad") {
+
+                            }
+
                         },
                         icon = { Icon(icon, contentDescription = label) },
                         label = {

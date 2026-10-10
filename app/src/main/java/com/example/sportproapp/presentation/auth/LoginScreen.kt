@@ -254,7 +254,7 @@ fun LoginScreen(
                                         val result = FirebaseAuthManager.loginUser(email, password)
                                         result.fold(
                                             onSuccess = {
-                                                navController.navigate("home")
+                                                navController.navigate("adminHome")
                                             },
                                             onFailure = { exception ->
                                                 Toast.makeText(
