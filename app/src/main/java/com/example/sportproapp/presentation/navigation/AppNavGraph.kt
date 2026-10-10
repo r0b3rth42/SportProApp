@@ -74,6 +74,10 @@ fun AppNavGraph(
             composable("teams") { TeamsListScreen(navController) }
             composable("teams-create") { CreateTeamScreen(navController) }
             composable("jugador") { TeamDetailScreen(navController) }
+            composable("player-profile/{playerId}") { backStackEntry ->
+                val playerId = backStackEntry.arguments?.getString("playerId") ?: "1"
+                PlayerProfileScreen(navController, playerId = playerId)
+            }
             // 1. Pantalla principal de Entrenamientos
             composable("entrenamiento") { EntrenamientosScreen(
                 navController,
