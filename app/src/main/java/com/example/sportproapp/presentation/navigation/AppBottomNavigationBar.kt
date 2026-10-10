@@ -31,7 +31,7 @@ fun AppBottomNavigationBar(
         tonalElevation = 8.dp
     ) {
         val navItems = listOf(
-            Triple("Inicio", Icons.Outlined.Home, "home"),
+            Triple("Inicio", Icons.Outlined.Home, "home/Roberth Angel"),
             Triple("Equipos", Icons.Outlined.Group, "teams"),
             Triple("entrenamiento", Icons.Outlined.Cancel, "entrenamiento"),
             Triple("Partidos", Icons.Outlined.EmojiEvents, "matches"),
