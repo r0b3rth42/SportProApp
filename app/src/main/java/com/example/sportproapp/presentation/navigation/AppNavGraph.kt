@@ -19,6 +19,7 @@ import com.example.sportproapp.presentation.entrenamiento.CrearEntrenamientoScre
 import com.example.sportproapp.presentation.entrenamiento.EntrenamientosScreen
 import com.example.sportproapp.presentation.home.AdminHomeScreen
 import com.example.sportproapp.presentation.home.PlayerHomeScreen
+import com.example.sportproapp.presentation.jugador.PlayerProfileScreen
 import com.example.sportproapp.presentation.jugador.TeamDetailScreen
 import com.example.sportproapp.presentation.teams.CreateTeamScreen
 import com.example.sportproapp.presentation.teams.TeamsListScreen
