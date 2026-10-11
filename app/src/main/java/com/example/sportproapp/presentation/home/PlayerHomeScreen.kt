@@ -49,109 +49,11 @@ fun PlayerHomeScreen(
 ) {
     var selectedBottomTab by remember { mutableIntStateOf(0) }
 
-    Scaffold(
-        containerColor = DarkBackground,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        // Avatar iniciales
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(DarkCardBackground)
-                                .border(1.dp, CardBorderColor, CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = userName.take(2).uppercase(),
-                                color = PrimaryLime,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp
-                            )
-                        }
 
-                        Spacer(modifier = Modifier.width(12.dp))
-
-                        Column {
-                            Text(
-                                text = "Hola, $userName",
-                                color = Color.White,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = getRoleBadgeText(userRole),
-                                color = TextMuted,
-                                fontSize = 12.sp
-                            )
-                        }
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { navController.navigate("notifications") }) {
-                        BadgedBox(
-                            badge = { Badge(containerColor = PrimaryLime) { Text("2", color = DarkBackground) } }
-                        ) {
-                            Icon(Icons.Outlined.Notifications, contentDescription = "Notificaciones", tint = Color.White)
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkBackground)
-            )
-        },
-        bottomBar = {
-            NavigationBar(
-                containerColor = DarkCardBackground,
-                tonalElevation = 8.dp
-            ) {
-                NavigationBarItem(
-                    selected = selectedBottomTab == 0,
-                    onClick = { selectedBottomTab = 0 },
-                    icon = { Icon(Icons.Filled.Home, contentDescription = "Inicio") },
-                    label = { Text("Inicio") },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = DarkBackground,
-                        selectedTextColor = PrimaryLime,
-                        indicatorColor = PrimaryLime,
-                        unselectedIconColor = TextMuted,
-                        unselectedTextColor = TextMuted
-                    )
-                )
-                NavigationBarItem(
-                    selected = selectedBottomTab == 1,
-                    onClick = { selectedBottomTab = 1 },
-                    icon = { Icon(Icons.Outlined.SportsSoccer, contentDescription = "Equipos") },
-                    label = { Text("Partidos") },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = DarkBackground,
-                        selectedTextColor = PrimaryLime,
-                        indicatorColor = PrimaryLime,
-                        unselectedIconColor = TextMuted,
-                        unselectedTextColor = TextMuted
-                    )
-                )
-                NavigationBarItem(
-                    selected = selectedBottomTab == 2,
-                    onClick = { selectedBottomTab = 2 },
-                    icon = { Icon(Icons.Outlined.Person, contentDescription = "Perfil") },
-                    label = { Text("Perfil") },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = DarkBackground,
-                        selectedTextColor = PrimaryLime,
-                        indicatorColor = PrimaryLime,
-                        unselectedIconColor = TextMuted,
-                        unselectedTextColor = TextMuted
-                    )
-                )
-            }
-        }
-    ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding()
                 .padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
@@ -270,7 +172,7 @@ fun PlayerHomeScreen(
 
             item { Spacer(modifier = Modifier.height(16.dp)) }
         }
-    }
+
 }
 
 // --- COMPONENTE: ITEM DE ACCIÓN RÁPIDA ---

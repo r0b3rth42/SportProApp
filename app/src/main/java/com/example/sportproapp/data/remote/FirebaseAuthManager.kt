@@ -52,4 +52,18 @@ object FirebaseAuthManager {
             Result.failure(e)
         }
     }
+
+    fun getCurrentUserId(): String? {
+        return auth.currentUser?.uid
+    }
+
+    suspend fun getUserNameFromFirestore(uid: String): String? {
+        return try {
+            val document = firestore.collection("users").document(uid).get().await()
+            // Ajusta el campo ("fullName" o "name") según tu modelo User
+            document.getString("fullName") ?: document.getString("name")
+        } catch (e: Exception) {
+            null
+        }
+    }
 }

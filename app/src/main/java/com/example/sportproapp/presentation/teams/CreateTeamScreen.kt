@@ -1,5 +1,6 @@
 package com.example.sportproapp.presentation.teams
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -25,7 +27,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.sportproapp.data.remote.FirebaseAuthManager
 import com.example.sportproapp.presentation.auth.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import okhttp3.Dispatcher
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,6 +43,8 @@ fun CreateTeamScreen(
     var category by remember { mutableStateOf("Sub-15") }
     var coachName by remember { mutableStateOf("Carlos Ortiz") }
     var hasSubdivision by remember { mutableStateOf(true) }
+
+    val context = LocalContext.current
 
     // Colores disponibles para la franja distintiva
     val availableColors = listOf(
@@ -251,7 +258,23 @@ fun CreateTeamScreen(
                             }
                         } else {
                             teamNameError = false
-                            //FirebaseAuthManager.registerTeam()
+                            CoroutineScope(Dispatchers.Main).launch {
+                                 val result = FirebaseAuthManager.registerTeam(teamName, category, coachName)
+                                result.fold(
+                                    onSuccess = {
+                                        navController.navigate("teams")
+                                    },
+                                    onFailure = { exception ->
+                                        Toast.makeText(
+                                            context,
+                                            exception.message ?: "Error al registrar nuevo equipo",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+
+                                    }
+                                )
+                            }
+
                             navController.popBackStack()
                         }
                     },

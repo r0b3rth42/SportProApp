@@ -33,86 +33,36 @@ data class Team(
     val badgeTag: String = "+ sub-división"
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TeamsListScreen(
     navController: NavController,
     onTeamClick: (String) -> Unit = {},
-    onAddTeamClick: () -> Unit = {}
+    onAddTeamClick: () -> Unit = {},
+    viewModel: TeamsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    var selectedBottomTab by remember { mutableIntStateOf(1) } // 1 = Equipos
 
+    // Recolectar el estado reactivo del ViewModel
+    val uiState by viewModel.uiState.collectAsState()
     // Lista mock de equipos basada en tu diseño
     val teamsList = remember {
         listOf(
             Team("1", "Tigres Academia", 18, "Carlos Ortiz", Color(0xFFFF2A6D)),
             Team("2", "Halcones Norte", 22, "Andrés Silva", PrimaryLime),
-            Team("3", "Leones Sub-13", 16, "Carlos Ortiz", Color(0xFF007AFF))
+            Team("3", "Leones Sub-13", 16, "Carlos Ortiz", Color(0xFF007AFF)),
+            Team("4", "Sin asignar", 1000, "Sin asignar", Color(0xFF343333))
         )
     }
 
-    Scaffold(
-        containerColor = DarkBackground,
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    navController.navigate("teams-create")
-                },
-                containerColor = PrimaryLime,
-                contentColor = DarkBackground,
-                shape = CircleShape,
-                modifier = Modifier.size(60.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Agregar Equipo",
-                    modifier = Modifier.size(32.dp)
-                )
-            }
-        },
-        bottomBar = {
-            NavigationBar(
-                containerColor = DarkCardBackground,
-                tonalElevation = 8.dp
-            ) {
-                val navItems = listOf(
-                    Triple("Inicio", Icons.Outlined.Home, 0),
-                    Triple("Equipos", Icons.Filled.Group, 1),
-                    Triple("Entrenamientos", Icons.Outlined.Cancel, 2),
-                    Triple("Partidos", Icons.Outlined.EmojiEvents, 3),
-                    Triple("Comunidad", Icons.Outlined.ChatBubbleOutline, 4)
-                )
-
-                navItems.forEach { (label, icon, index) ->
-                    val isSelected = selectedBottomTab == index
-                    NavigationBarItem(
-                        selected = isSelected,
-                        onClick = { selectedBottomTab = index },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = {
-                            Text(
-                                text = label,
-                                fontSize = 11.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                            )
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = PrimaryLime,
-                            selectedTextColor = PrimaryLime,
-                            indicatorColor = Color.Transparent,
-                            unselectedIconColor = TextMuted,
-                            unselectedTextColor = TextMuted
-                        )
-                    )
-                }
-            }
-        }
-    ) { innerPadding ->
+    // 💡 Usamos un Box principal para mantener el fondo y permitir que el FloatingActionButton flote libremente arriba
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(DarkBackground)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
                 .padding(horizontal = 20.dp)
         ) {
             // --- 1. CABECERA Y FILTRO ---
@@ -173,22 +123,93 @@ fun TeamsListScreen(
                 )
             )
 
-            // --- 3. LISTA DE TARJETAS DE EQUIPO ---
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(14.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                val filteredTeams = teamsList.filter {
-                    it.name.contains(searchQuery, ignoreCase = true) ||
-                            it.coachName.contains(searchQuery, ignoreCase = true)
+            // --- 3. MANEJADOR DE ESTADOS ---
+            when (val state = uiState) {
+                is TeamsUiState.Loading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = PrimaryLime)
+                    }
                 }
-
-                items(filteredTeams) { team ->
-                    TeamCardItem(team = team, onClick = { onTeamClick(team.id) })
+                is TeamsUiState.Error -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Error: ${state.message}",
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 14.sp
+                        )
+                    }
                 }
+                is TeamsUiState.Success -> {
+                    val teamsList = state.teams
 
-                item { Spacer(modifier = Modifier.height(20.dp)) }
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(14.dp),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        val filteredTeams = teamsList.filter {
+                            it.name.contains(searchQuery, ignoreCase = true) ||
+                                    it.coachName.contains(searchQuery, ignoreCase = true)
+                        }
+
+                        if (filteredTeams.isEmpty()) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 40.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "No se encontraron equipos registrados",
+                                        color = TextMuted,
+                                        fontSize = 14.sp
+                                    )
+                                }
+                            }
+                        } else {
+                            items(filteredTeams) { team ->
+                                TeamCardItem(team = team, onClick = {
+                                    if(team.name == "Sin Asignar") {
+                                        navController.navigate("jugador")
+                                    } else {
+                                        onTeamClick(team.id)
+                                    }
+
+                                })
+                            }
+                        }
+
+                        // Espacio adicional abajo para que el contenido no quede tapado por la barra inferior global
+                        item { Spacer(modifier = Modifier.height(90.dp)) }
+                    }
+                }
             }
+        }
+
+        // --- 4. BOTÓN FLOTANTE (FAB) POSICIONADO ARRIBA DEL CONTENEDOR ---
+        FloatingActionButton(
+            onClick = {
+                navController.navigate("teams-create")
+            },
+            containerColor = PrimaryLime,
+            contentColor = DarkBackground,
+            shape = CircleShape,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 20.dp, bottom = 20.dp)
+                .size(60.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Agregar Equipo",
+                modifier = Modifier.size(32.dp)
+            )
         }
     }
 }
@@ -277,7 +298,7 @@ fun TeamCardItem(
                     // Entrenador
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = Icons.Outlined.Cancel, // Ícono circular de perfil/detalles
+                            imageVector = Icons.Outlined.Cancel,
                             contentDescription = null,
                             tint = TextMuted,
                             modifier = Modifier.size(16.dp)
