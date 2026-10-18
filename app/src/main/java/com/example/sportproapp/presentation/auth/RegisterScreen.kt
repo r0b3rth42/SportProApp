@@ -60,6 +60,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.sportproapp.data.remote.FirebaseAuthManager
+import com.example.sportproapp.data.remote.supabase
+import com.example.sportproapp.data.remote.supabase.UsuarioRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -241,7 +243,8 @@ fun RegisterScreen(
                         Button(
                             onClick = {
                                 CoroutineScope(Dispatchers.Main).launch {
-                                    val result = FirebaseAuthManager
+                                    val result = UsuarioRepository
+                                        //FirebaseAuthManager
                                         .registerUser(fullName, email, password)
                                     result.fold(
                                         onSuccess = {
