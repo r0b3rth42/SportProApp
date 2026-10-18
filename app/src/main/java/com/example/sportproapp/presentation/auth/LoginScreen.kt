@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.sportproapp.data.remote.FirebaseAuthManager
+import com.example.sportproapp.data.remote.supabase.UsuarioRepository
 import com.example.sportproapp.presentation.components.LoadingScreen
 import kotlinx.coroutines.launch
 
@@ -256,20 +257,39 @@ fun LoginScreen(
 
                                         result.fold(
                                             onSuccess = {
-                                                val uid = FirebaseAuthManager.getCurrentUserId();
+                                                val uid = FirebaseAuthManager.getCurrentUserId()
 
-                                                // Consultamos el nombre guardado en la colección "users"
-                                                val userName = if (uid != null) {
-                                                    FirebaseAuthManager.getUserNameFromFirestore(uid) ?: "Usuario"
+                                                if (uid != null) {
+                                                    // 1. Consultar el rol del usuario desde Supabase
+                                                    val roleResult = UsuarioRepository.getUserRole(uid)
+                                                    val userRole = roleResult.getOrNull()
+
+                                                    // 2. Obtener el nombre del usuario
+                                                    val userName = FirebaseAuthManager.getUserNameFromFirestore(uid) ?: "Usuario"
+
+                                                    isLoading = false
+
+                                                    // 3. Validar si el rol está pendiente
+                                                    if (userRole == "PENDIENTE" || userRole.isNull_or_Empty()) {
+                                                        navController.navigate("selected_role") {
+                                                            popUpTo("login") { inclusive = true }
+                                                        }
+                                                    } else {
+                                                        navController.navigate("home/$userName") {
+                                                            popUpTo("login") { inclusive = true }
+                                                        }
+                                                    }
                                                 } else {
-                                                    "Usuario"
-                                                }
-                                                isLoading = false
-                                                navController.navigate("home/$userName") {
-                                                    popUpTo("login") { inclusive = true }
+                                                    isLoading = false
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Error al recuperar credenciales del usuario",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
                                                 }
                                             },
                                             onFailure = { exception ->
+                                                isLoading = false
                                                 Toast.makeText(
                                                     context,
                                                     exception.message ?: "Error al iniciar sesión",
@@ -395,3 +415,6 @@ fun CustomLoginTextField(
         }
     }
 }
+
+// Helper de extensión para validar nulo o vacío
+private fun String?.isNull_or_Empty(): Boolean = this.isNullOrEmpty() || this == "null"

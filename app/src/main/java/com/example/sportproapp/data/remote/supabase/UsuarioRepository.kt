@@ -1,5 +1,6 @@
 package com.example.sportproapp.data.remote.supabase
 
+import com.example.sportproapp.data.model.JugadorPerfil
 import com.example.sportproapp.data.model.Usuarios
 import com.example.sportproapp.data.remote.supabase
 import com.google.firebase.auth.FirebaseAuth
@@ -57,6 +58,17 @@ object UsuarioRepository {
                 .decodeSingle<Usuarios>()
 
             Result.success(usuario.role)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Agrega esta función dentro de tu UsuarioRepository.kt
+
+    suspend fun savePlayerProfile(perfil: JugadorPerfil): Result<Unit> {
+        return try {
+            supabase.from("jugadores").insert(perfil)
+            Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
