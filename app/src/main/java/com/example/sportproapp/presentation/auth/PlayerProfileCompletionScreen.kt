@@ -407,9 +407,13 @@ fun PlayerProfileCompletionScreen(
                                             onSuccess = {
                                                 Toast.makeText(context, "¡Perfil guardado correctamente!", Toast.LENGTH_SHORT).show()
                                                 val userName = currentUser.displayName ?: "Jugador"
-                                                navController.navigate("home/$userName") {
+                                                navController.navigate("link_parent_code")
+
+                                                /*navController.navigate("home/$userName") {
                                                     popUpTo("select_role") { inclusive = true }
                                                 }
+
+                                                 */
                                             },
                                             onFailure = { ex ->
                                                 Toast.makeText(context, ex.message ?: "Error al guardar el perfil", Toast.LENGTH_LONG).show()

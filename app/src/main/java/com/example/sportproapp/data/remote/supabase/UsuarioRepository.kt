@@ -73,4 +73,39 @@ object UsuarioRepository {
             Result.failure(e)
         }
     }
+
+    // Agrega esta función dentro de UsuarioRepository.kt
+
+    suspend fun updateLinkingCode(userId: String, code: String): Result<Unit> {
+        return try {
+            supabase.from("jugadores").update({
+                set("codigo_vinculacion", code)
+                set("estado_vinculacion", "PENDIENTE")
+            }) {
+                filter {
+                    eq("id", userId)
+                }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Agrega esta función dentro de UsuarioRepository.kt
+
+    suspend fun getPlayerProfile(userId: String): Result<JugadorPerfil> {
+        return try {
+            val perfil = supabase.from("jugadores")
+                .select {
+                    filter {
+                        eq("id", userId)
+                    }
+                }
+                .decodeSingle<JugadorPerfil>()
+            Result.success(perfil)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
