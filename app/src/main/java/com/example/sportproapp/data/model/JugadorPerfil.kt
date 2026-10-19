@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class JugadorPerfil(
     @SerialName("id") val id: String,
-    @SerialName("equipo_id") val equipoId: String,
+    @SerialName("equipo_id") val equipoId: String? = null,
     @SerialName("fecha_nacimiento") val fechaNacimiento: String,
     @SerialName("posicion") val posicion: String,
     @SerialName("altura_cm") val alturaCm: Double,
