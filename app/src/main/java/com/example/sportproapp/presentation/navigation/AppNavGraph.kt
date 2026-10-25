@@ -1,5 +1,7 @@
 package com.example.sportproapp.presentation.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -27,21 +29,20 @@ import com.example.sportproapp.presentation.jugador.TeamDetailScreen
 import com.example.sportproapp.presentation.teams.CreateTeamScreen
 import com.example.sportproapp.presentation.teams.TeamsListScreen
 
-
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavGraph(
-    userRole: String // "ADM", "DT", "JUG", "PAD"
+    startDestination: String = "login",
+    initialRole: String? = "JUG"
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Definimos las pantallas que DEBEN mostrar la barra inferior
     val bottomBarRoutes = listOf("home", "teams", "entrenamiento", "matches", "community")
 
     Scaffold(
         bottomBar = {
-            // Verificamos si la ruta actual comienza con alguna de las rutas principales
             val showBottomBar = bottomBarRoutes.any { route ->
                 currentRoute?.startsWith(route) == true
             }
@@ -56,19 +57,20 @@ fun AppNavGraph(
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = "login",
-            // 💡 IMPORTANTE: Aplicar el innerPadding aquí evita que la barra inferior tape el contenido
+            startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)
         ) {
-            // --- Pantalla Principal (Se adapta según el rol del usuario) ---
-            composable("home/{userName}") { backStackEntry ->
+            // --- Pantalla Principal adaptada dinámicamente por ROL ---
+            composable("home/{userName}/{userRole}") { backStackEntry ->
                 val userName = backStackEntry.arguments?.getString("userName") ?: "Usuario"
-                when (userRole) {
+                val role = backStackEntry.arguments?.getString("userRole") ?: initialRole
+
+                when (role) {
                     "ADM" -> AdminHomeScreen(navController, userName = userName)
-                    "DT" -> AdminHomeScreen(navController) // Puedes cambiarlo a CoachHomeScreen si lo tienes creado
-                    "JUG" -> AdminHomeScreen(navController)
-                    "PAD" -> AdminHomeScreen(navController) // Puedes cambiarlo a TutorHomeScreen si lo tienes creado
-                    else -> AdminHomeScreen(navController)
+                    "JUG" -> PlayerHomeScreen(navController, userName = userName, userRole = role)
+                    "DT" -> AdminHomeScreen(navController) // Reemplazar con CoachHomeScreen
+                    "PAD" -> AdminHomeScreen(navController) // Reemplazar con TutorHomeScreen
+                    else -> PlayerHomeScreen(navController, userName = userName, userRole = role)
                 }
             }
 
@@ -77,27 +79,26 @@ fun AppNavGraph(
             composable("teams") { TeamsListScreen(navController) }
             composable("teams-create") { CreateTeamScreen(navController) }
             composable("jugador") { TeamDetailScreen(navController) }
+
             composable("player-profile/{playerId}") { backStackEntry ->
                 val playerId = backStackEntry.arguments?.getString("playerId") ?: "1"
                 PlayerProfileScreen(navController, playerId = playerId)
             }
-            // 1. Pantalla principal de Entrenamientos
-            composable("entrenamiento") { EntrenamientosScreen(
-                navController,
-                onAddClick = {
-                    // Al pulsar +, navegamos a la pantalla de creación
-                    navController.navigate("entrenamiento-create")            }
-            ) }
-            // 2. Nueva pantalla para Crear Entrenamiento
+
+            composable("entrenamiento") {
+                EntrenamientosScreen(
+                    navController = navController,
+                    onAddClick = { navController.navigate("entrenamiento-create") }
+                )
+            }
+
             composable("entrenamiento-create") {
                 CrearEntrenamientoScreen(
                     navController = navController,
-                    onCrearClick = {
-                        // Al guardar, regresamos a la pantalla anterior
-                        navController.popBackStack()
-                    }
+                    onCrearClick = { navController.popBackStack() }
                 )
             }
+
             composable("selected_role") { RoleSelectionScreen(navController) }
             composable("register-player-profile") { PlayerProfileCompletionScreen(navController) }
             composable("link_parent_code") { LinkParentCodeScreen(navController = navController) }
@@ -105,7 +106,6 @@ fun AppNavGraph(
     }
 }
 
-// Pantalla temporal por si navegas a secciones que aún están en desarrollo
 @Composable
 fun PlaceholderScreen(title: String) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

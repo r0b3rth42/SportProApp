@@ -7,6 +7,7 @@ import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.FamilyRestroom
 import androidx.compose.material.icons.outlined.Share
@@ -46,14 +48,18 @@ import com.example.sportproapp.presentation.auth.TextMuted
 
 @Composable
 fun PendingParentLinkCard(
-    codigoVinculacion: String
+    codigoVinculacion: String,
+    onCardClick: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, PrimaryLime, RoundedCornerShape(20.dp)),
+            .border(1.dp, PrimaryLime, RoundedCornerShape(20.dp))
+            .then(
+                if (onCardClick != null) Modifier.clickable { onCardClick() } else Modifier
+            ),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = DarkCardBackground)
     ) {
@@ -66,35 +72,50 @@ fun PendingParentLinkCard(
             // Cabecera con ícono
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .background(Color(0xFF162D24), RoundedCornerShape(10.dp)),
-                    contentAlignment = Alignment.Center
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.FamilyRestroom,
-                        contentDescription = null,
-                        tint = PrimaryLime,
-                        modifier = Modifier.size(20.dp)
-                    )
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(Color(0xFF162D24), RoundedCornerShape(10.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.FamilyRestroom,
+                            contentDescription = null,
+                            tint = PrimaryLime,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    Column {
+                        Text(
+                            text = "Apoderado pendiente",
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Toca para ver la pantalla completa",
+                            color = TextMuted,
+                            fontSize = 12.sp
+                        )
+                    }
                 }
 
-                Column {
-                    Text(
-                        text = "Apoderado pendiente de vinculación",
-                        color = Color.White,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "Muestra este código a tu padre para vincular su cuenta",
-                        color = TextMuted,
-                        fontSize = 12.sp
-                    )
-                }
+                // Flecha para indicar que es abrible
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = "Ver código completo",
+                    tint = PrimaryLime,
+                    modifier = Modifier.size(22.dp)
+                )
             }
 
             // Caja del código

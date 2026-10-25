@@ -261,21 +261,21 @@ fun LoginScreen(
 
                                                 if (uid != null) {
                                                     // 1. Consultar el rol del usuario desde Supabase
-                                                    val roleResult = UsuarioRepository.getUserRole(uid)
-                                                    val userRole = roleResult.getOrNull()
+                                                    val user = UsuarioRepository.getUser(uid)
+                                                    val userResult = user.getOrNull()
 
                                                     // 2. Obtener el nombre del usuario
-                                                    val userName = FirebaseAuthManager.getUserNameFromFirestore(uid) ?: "Usuario"
+                                                    val userName = userResult?.name
 
                                                     isLoading = false
 
                                                     // 3. Validar si el rol está pendiente
-                                                    if (userRole == "PENDIENTE" || userRole.isNull_or_Empty()) {
+                                                    if (userResult?.role == "PENDIENTE" || userResult?.role.isNull_or_Empty()) {
                                                         navController.navigate("selected_role") {
                                                             popUpTo("login") { inclusive = true }
                                                         }
                                                     } else {
-                                                        navController.navigate("home/$userName") {
+                                                        navController.navigate("home/$userName/${userResult?.role}") {
                                                             popUpTo("login") { inclusive = true }
                                                         }
                                                     }

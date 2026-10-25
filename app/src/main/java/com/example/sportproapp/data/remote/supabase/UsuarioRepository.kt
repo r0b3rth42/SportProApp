@@ -47,7 +47,7 @@ object UsuarioRepository {
     }
 
     // --- NUEVA FUNCIÓN PARA CONSULTAR EL ROL DEL USUARIO ---
-    suspend fun getUserRole(userId: String): Result<String> {
+    suspend fun getUser(userId: String): Result<Usuarios> {
         return try {
             val usuario = supabase.from("usuarios")
                 .select {
@@ -57,7 +57,7 @@ object UsuarioRepository {
                 }
                 .decodeSingle<Usuarios>()
 
-            Result.success(usuario.role)
+            Result.success(usuario)
         } catch (e: Exception) {
             Result.failure(e)
         }

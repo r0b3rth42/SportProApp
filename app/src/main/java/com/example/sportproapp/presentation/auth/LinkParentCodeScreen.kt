@@ -39,7 +39,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,7 +52,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.sportproapp.data.remote.supabase.UsuarioRepository
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 @Composable
@@ -61,20 +59,27 @@ fun LinkParentCodeScreen(
     navController: NavController
 ) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
 
     var linkingCode by remember { mutableStateOf("Cargando...") }
     var isLoading by remember { mutableStateOf(true) }
+    var userName by remember { mutableStateOf("Jugador") }
+    var userRole by remember { mutableStateOf("JUG") }
 
-    val currentUser = FirebaseAuth.getInstance().currentUser
-
-    // Generar u obtener el código de vinculación al cargar la pantalla
+    // Generar u obtener el código de vinculación y datos del usuario al cargar la pantalla
     LaunchedEffect(Unit) {
+        val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser != null) {
-            // Generar código único aleatorio si aún no existe (ej: SP-8392)
+            // 1. Obtener nombre y rol guardados en Supabase
+            val userResult = UsuarioRepository.getUser(currentUser.uid)
+            userResult.getOrNull()?.let { user ->
+                userName = user.name.ifBlank { "Jugador" }
+                userRole = user.role.ifBlank { "JUG" }
+            }
+
+            // 2. Generar código único aleatorio (ej: SP-8392)
             val generatedCode = "SP-" + Random.nextInt(1000, 9999).toString()
 
-            // Guardar o actualizar el código de vinculación en Supabase
+            // 3. Guardar el código de vinculación en Supabase
             val result = UsuarioRepository.updateLinkingCode(currentUser.uid, generatedCode)
             result.fold(
                 onSuccess = {
@@ -82,11 +87,13 @@ fun LinkParentCodeScreen(
                     isLoading = false
                 },
                 onFailure = {
-                    // Si falla el guardado, se muestra el código localmente
                     linkingCode = generatedCode
                     isLoading = false
                 }
             )
+        } else {
+            isLoading = false
+            Toast.makeText(context, "No se encontró sesión activa", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -195,7 +202,6 @@ fun LinkParentCodeScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            // Botón Copiar
                             OutlinedButton(
                                 onClick = {
                                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -219,7 +225,6 @@ fun LinkParentCodeScreen(
                                 Text("Copiar", fontSize = 14.sp)
                             }
 
-                            // Botón Compartir (WhatsApp / Mensajes)
                             OutlinedButton(
                                 onClick = {
                                     val shareIntent = Intent(Intent.ACTION_SEND).apply {
@@ -292,8 +297,7 @@ fun LinkParentCodeScreen(
                 // --- 4. BOTÓN CONTINUAR AL HOME ---
                 Button(
                     onClick = {
-                        val userName = currentUser?.displayName ?: "Jugador"
-                        navController.navigate("home/$userName") {
+                        navController.navigate("home/$userName/$userRole") {
                             popUpTo("select_role") { inclusive = true }
                         }
                     },
