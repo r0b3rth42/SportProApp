@@ -275,9 +275,20 @@ fun LoginScreen(
                                                             popUpTo("login") { inclusive = true }
                                                         }
                                                     } else {
-                                                        navController.navigate("home/$userName/${userResult?.role}") {
-                                                            popUpTo("login") { inclusive = true }
+
+                                                        // 1. Obtener usuario básico desde Supabase
+                                                        val parentResult = UsuarioRepository.getParentProfile(uid).getOrNull()
+                                                        isLoading = false
+
+                                                        if(parentResult == null){
+                                                            navController.navigate("register-parent-profile")
+                                                        } else {
+                                                            navController.navigate("home/$userName/${userResult?.role}") {
+                                                                popUpTo("login") { inclusive = true }
+                                                            }
                                                         }
+
+
                                                     }
                                                 } else {
                                                     isLoading = false

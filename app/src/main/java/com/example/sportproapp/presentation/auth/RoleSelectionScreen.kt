@@ -63,7 +63,7 @@ fun RoleSelectionScreen(
     val roles = listOf(
         RoleOption("DT", "Entrenador", "Planifica y dirige equipos", "", Icons.Outlined.FitnessCenter),
         RoleOption("JUG", "Jugador", "Monitorea tu rendimiento", "register-player-profile", Icons.Outlined.MonitorHeart),
-        RoleOption("PAD", "Padre de Fam.", "Sigue los pasos de tu hijo", "", Icons.Outlined.FavoriteBorder),
+        RoleOption("PAD", "Padre de Fam.", "Sigue los pasos de tu hijo", "register-parent-profile", Icons.Outlined.FavoriteBorder),
         RoleOption("ADM", "Administrador", "Gestiona toda la academia", "", Icons.Outlined.Settings)
     )
 

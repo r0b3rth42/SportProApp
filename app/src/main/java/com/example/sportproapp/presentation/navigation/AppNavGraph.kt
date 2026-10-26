@@ -17,12 +17,14 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.sportproapp.presentation.auth.LinkParentCodeScreen
 import com.example.sportproapp.presentation.auth.LoginScreen
+import com.example.sportproapp.presentation.auth.ParentProfileCompletionScreen
 import com.example.sportproapp.presentation.auth.PlayerProfileCompletionScreen
 import com.example.sportproapp.presentation.auth.RegisterScreen
 import com.example.sportproapp.presentation.auth.RoleSelectionScreen
 import com.example.sportproapp.presentation.entrenamiento.CrearEntrenamientoScreen
 import com.example.sportproapp.presentation.entrenamiento.EntrenamientosScreen
 import com.example.sportproapp.presentation.home.AdminHomeScreen
+import com.example.sportproapp.presentation.home.ParentHomeScreen
 import com.example.sportproapp.presentation.home.PlayerHomeScreen
 import com.example.sportproapp.presentation.jugador.PlayerProfileScreen
 import com.example.sportproapp.presentation.jugador.TeamDetailScreen
@@ -69,7 +71,7 @@ fun AppNavGraph(
                     "ADM" -> AdminHomeScreen(navController, userName = userName)
                     "JUG" -> PlayerHomeScreen(navController, userName = userName, userRole = role)
                     "DT" -> AdminHomeScreen(navController) // Reemplazar con CoachHomeScreen
-                    "PAD" -> AdminHomeScreen(navController) // Reemplazar con TutorHomeScreen
+                    "PAD" -> ParentHomeScreen(navController, userName = userName) // Reemplazar con TutorHomeScreen
                     else -> PlayerHomeScreen(navController, userName = userName, userRole = role)
                 }
             }
@@ -101,6 +103,7 @@ fun AppNavGraph(
 
             composable("selected_role") { RoleSelectionScreen(navController) }
             composable("register-player-profile") { PlayerProfileCompletionScreen(navController) }
+            composable("register-parent-profile") { ParentProfileCompletionScreen(navController) }
             composable("link_parent_code") { LinkParentCodeScreen(navController = navController) }
         }
     }
