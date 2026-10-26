@@ -52,6 +52,7 @@ data class RoleOption(
     val code: String,
     val title: String,
     val description: String,
+    val redirect: String,
     val icon: ImageVector
 )
 
@@ -60,13 +61,14 @@ fun RoleSelectionScreen(
     navController: NavController
 ) {
     val roles = listOf(
-        RoleOption("DT", "Entrenador", "Planifica y dirige equipos", Icons.Outlined.FitnessCenter),
-        RoleOption("JUG", "Jugador", "Monitorea tu rendimiento", Icons.Outlined.MonitorHeart),
-        RoleOption("PAD", "Padre de Fam.", "Sigue los pasos de tu hijo", Icons.Outlined.FavoriteBorder),
-        RoleOption("ADM", "Administrador", "Gestiona toda la academia", Icons.Outlined.Settings)
+        RoleOption("DT", "Entrenador", "Planifica y dirige equipos", "", Icons.Outlined.FitnessCenter),
+        RoleOption("JUG", "Jugador", "Monitorea tu rendimiento", "register-player-profile", Icons.Outlined.MonitorHeart),
+        RoleOption("PAD", "Padre de Fam.", "Sigue los pasos de tu hijo", "register-parent-profile", Icons.Outlined.FavoriteBorder),
+        RoleOption("ADM", "Administrador", "Gestiona toda la academia", "", Icons.Outlined.Settings)
     )
 
     var selectedRoleCode by remember { mutableStateOf("DT") }
+    var selectedRoleRedirect by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
@@ -111,10 +113,14 @@ fun RoleSelectionScreen(
             ) {
                 roles.forEach { role ->
                     val isSelected = selectedRoleCode == role.code
+
                     RoleCardItem(
                         role = role,
                         isSelected = isSelected,
-                        onClick = { selectedRoleCode = role.code }
+                        onClick = {
+                            selectedRoleCode = role.code
+                            selectedRoleRedirect = role.redirect
+                        }
                     )
                 }
             }
@@ -134,8 +140,8 @@ fun RoleSelectionScreen(
                         isLoading = false
                         result.fold(
                             onSuccess = {
-                                // Navega a la pantalla principal o al login según tu flujo
-                                navController.navigate("login") {
+                                // Navega a la pantalla según tu flujo
+                                navController.navigate(selectedRoleRedirect) {
                                     popUpTo("register") { inclusive = true }
                                 }
                             },

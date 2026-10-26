@@ -1,5 +1,12 @@
 package com.example.sportproapp.presentation.home
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,11 +26,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.sportproapp.data.model.JugadorPerfil
+import com.example.sportproapp.data.remote.supabase.UsuarioRepository
 import com.example.sportproapp.presentation.auth.*
+import com.google.firebase.auth.FirebaseAuth
 
 // --- MODELOS DE DATOS PARA EL DASHBOARD ---
 data class QuickAction(
@@ -40,26 +52,134 @@ data class UpcomingEvent(
     val location: String
 )
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerHomeScreen(
     navController: NavController,
     userName: String = "Carlos Ortiz",
-    userRole: String = "JUG" // "DT", "JUG", "PAD", "ADM"
+    userRole: String? = "JUG" // "DT", "JUG", "PAD", "ADM"
 ) {
-    var selectedBottomTab by remember { mutableIntStateOf(0) }
+    // Estado para consultar los datos del perfil del jugador en Supabase
+    var playerProfile by remember { mutableStateOf<JugadorPerfil?>(null) }
+    val currentUser = FirebaseAuth.getInstance().currentUser
 
+    // Cargar perfil si el usuario actual es un jugador
+    LaunchedEffect(currentUser?.uid) {
+        val uid = currentUser?.uid
+        if (uid != null && userRole == "JUG") {
+            val result = UsuarioRepository.getPlayerProfile(uid)
+            playerProfile = result.getOrNull()
+        }
+    }
 
+    Scaffold(
+        containerColor = DarkBackground
+    ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding()
+                .padding(innerPadding)
                 .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            item { Spacer(modifier = Modifier.height(4.dp)) }
+            // --- 0. CABECERA SUPERIOR (SALUDO, FOTO Y NOTIFICACIONES) ---
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp, bottom = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        // Avatar Circular
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(InputBackgroundColor)
+                                .border(1.5.dp, PrimaryLime, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Person,
+                                contentDescription = "Perfil",
+                                tint = TextLight,
+                                modifier = Modifier.size(26.dp)
+                            )
+                        }
 
-            // --- 1. TARJETA DE RESUMEN PRINCIPAL (BANNER) ---
+                        Column {
+                            Text(
+                                text = "¡Hola, $userName! 👋",
+                                color = Color.White,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Surface(
+                                color = Color(0xFF162D24),
+                                shape = RoundedCornerShape(8.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, CardBorderColor)
+                            ) {
+                                Text(
+                                    text = getRoleBadgeText(userRole),
+                                    color = PrimaryLime,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    // Botón Notificaciones
+                    IconButton(
+                        onClick = { /* Ir a notificaciones */ },
+                        modifier = Modifier
+                            .size(42.dp)
+                            .background(DarkCardBackground, CircleShape)
+                            .border(1.dp, CardBorderColor, CircleShape)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Notifications,
+                            contentDescription = "Notificaciones",
+                            tint = TextLight,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
+            }
+
+            // --- 1. TARJETA DE VINCULACIÓN DE APODERADO (SI ES MENOR Y PENDIENTE) ---
+            playerProfile?.let { perfil ->
+                if (perfil.estadoVinculacion == "PENDIENTE" && !perfil.codigoVinculacion.isNullOrEmpty()) {
+                    item {
+                        val esMenorEdadManual = remember(perfil.fechaNacimiento) {
+                            try {
+                                val fechaNac = java.time.LocalDate.parse(perfil.fechaNacimiento)
+                                val hoy = java.time.LocalDate.now()
+                                java.time.Period.between(fechaNac, hoy).years < 18
+                            } catch (e: Exception) {
+                                false
+                            }
+                        }
+
+                        if (esMenorEdadManual) {
+                            PendingParentLinkCard(
+                                codigoVinculacion = perfil.codigoVinculacion,
+                                onCardClick = { navController.navigate("link_parent_code") }
+                            )
+                        }
+                    }
+                }
+            }
+
+            // --- 2. BANNER DE PRÓXIMO ENTRENAMIENTO ---
             item {
                 Card(
                     modifier = Modifier
@@ -119,29 +239,31 @@ fun PlayerHomeScreen(
                 }
             }
 
-            // --- 2. ACCIONES RÁPIDAS (SEGÚN EL ROL) ---
+            // --- 3. ACCIONES RÁPIDAS ---
             item {
-                Text(
-                    text = "Acciones rápidas",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(12.dp))
+                Column {
+                    Text(
+                        text = "Acciones rápidas",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                val actions = getRoleQuickActions(userRole)
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(actions) { action ->
-                        QuickActionItem(action = action) {
-                            navController.navigate(action.route)
+                    val actions = getRoleQuickActions(userRole)
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(actions) { action ->
+                            QuickActionItem(action = action) {
+                                navController.navigate(action.route)
+                            }
                         }
                     }
                 }
             }
 
-            // --- 3. PRÓXIMOS EVENTOS Y CONVOCATORIAS ---
+            // --- 4. PRÓXIMOS EVENTOS Y CONVOCATORIAS ---
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -170,9 +292,148 @@ fun PlayerHomeScreen(
                 EventCard(event = event)
             }
 
-            item { Spacer(modifier = Modifier.height(16.dp)) }
+            item { Spacer(modifier = Modifier.height(20.dp)) }
         }
+    }
+}
 
+// --- COMPONENTE: TARJETA DE VINCULACIÓN DE APODERADO PENDIENTE ---
+@Composable
+fun PendingParentLinkCard(
+    codigoVinculacion: String,
+    onCardClick: (() -> Unit)? = null
+) {
+    val context = LocalContext.current
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(1.5.dp, PrimaryLime, RoundedCornerShape(20.dp))
+            .then(if (onCardClick != null) Modifier.clickable { onCardClick() } else Modifier),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = DarkCardBackground)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(Color(0xFF162D24), RoundedCornerShape(12.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.FamilyRestroom,
+                            contentDescription = null,
+                            tint = PrimaryLime,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+
+                    Column {
+                        Text(
+                            text = "Vincular con tu Apoderado",
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Toca para ver el código en pantalla completa",
+                            color = TextMuted,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    tint = PrimaryLime,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+
+            // Caja del Código
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(InputBackgroundColor, RoundedCornerShape(12.dp))
+                    .border(1.dp, CardBorderColor, RoundedCornerShape(12.dp))
+                    .padding(vertical = 10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = codigoVinculacion,
+                    color = PrimaryLime,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontFamily = FontFamily.Monospace,
+                    letterSpacing = 3.sp
+                )
+            }
+
+            // Botones Copiar / Compartir
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                OutlinedButton(
+                    onClick = {
+                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        val clip = ClipData.newPlainText("Código SportPro", codigoVinculacion)
+                        clipboard.setPrimaryClip(clip)
+                        Toast.makeText(context, "Código copiado", Toast.LENGTH_SHORT).show()
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(40.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, CardBorderColor),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = TextLight)
+                ) {
+                    Icon(Icons.Outlined.ContentCopy, contentDescription = null, modifier = Modifier.size(15.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Copiar", fontSize = 12.sp)
+                }
+
+                OutlinedButton(
+                    onClick = {
+                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(
+                                Intent.EXTRA_TEXT,
+                                "¡Hola! Mi código de vinculación para SportPro es: $codigoVinculacion"
+                            )
+                        }
+                        context.startActivity(Intent.createChooser(shareIntent, "Compartir mediante"))
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(40.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryLime),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryLime)
+                ) {
+                    Icon(Icons.Outlined.Share, contentDescription = null, modifier = Modifier.size(15.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Compartir", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    }
 }
 
 // --- COMPONENTE: ITEM DE ACCIÓN RÁPIDA ---
@@ -254,19 +515,18 @@ fun EventCard(event: UpcomingEvent) {
     }
 }
 
-// --- FUNCIONES AUXILIARES PARA ADAPTAR EL CONTENIDO SEGÚN ROL ---
-fun getRoleBadgeText(role: String): String {
+// --- FUNCIONES AUXILIARES DE ROL ---
+fun getRoleBadgeText(role: String?): String {
     return when (role) {
-        "DT" -> "Director Técnico / Entrenador"
+        "DT" -> "Director Técnico"
         "JUG" -> "Jugador Fichado"
         "PAD" -> "Apoderado / Tutor"
-        "ADM" -> "Administrador de Academia"
+        "ADM" -> "Administrador"
         else -> "Usuario"
     }
 }
 
-// --- 1. ACCIONES RÁPIDAS (Solo Módulos de Entrenamientos y Partidos) ---
-fun getRoleQuickActions(role: String): List<QuickAction> {
+fun getRoleQuickActions(role: String?): List<QuickAction> {
     return when (role) {
         "DT" -> listOf(
             QuickAction("Tomar Asistencia", Icons.Outlined.Checklist, "attendance"),
@@ -280,7 +540,8 @@ fun getRoleQuickActions(role: String): List<QuickAction> {
             QuickAction("Cobranzas", Icons.Outlined.PointOfSale, "admin_payments"),
             QuickAction("Gestión Usuarios", Icons.Outlined.AdminPanelSettings, "manage_users")
         )
-        else -> listOf( // JUG (Jugador): Módulos solicitados
+        else -> listOf( // JUG (Jugador)
+            QuickAction("Código Padre", Icons.Outlined.FamilyRestroom, "link_parent_code"),
             QuickAction("Entrenamientos", Icons.Outlined.FitnessCenter, "trainings_screen"),
             QuickAction("Partidos", Icons.Outlined.SportsSoccer, "matches_screen")
         )

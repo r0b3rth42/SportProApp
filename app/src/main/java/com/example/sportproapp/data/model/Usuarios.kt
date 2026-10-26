@@ -1,5 +1,6 @@
 package com.example.sportproapp.data.model
 
+import PadrePerfil
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -25,3 +26,13 @@ enum class UserStatus {
     INACTIVE,
     BLOCKED
 }
+
+data class JugadorConUsuario(
+    val usuario: Usuarios,
+    val perfil: JugadorPerfil
+)
+
+data class PadreConUsuario(
+    val usuario: Usuarios,
+    val perfil: PadrePerfil
+)

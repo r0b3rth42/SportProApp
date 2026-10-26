@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.sportproapp.data.remote.FirebaseAuthManager
+import com.example.sportproapp.data.remote.supabase.UsuarioRepository
 import com.example.sportproapp.presentation.components.LoadingScreen
 import kotlinx.coroutines.launch
 
@@ -256,20 +257,50 @@ fun LoginScreen(
 
                                         result.fold(
                                             onSuccess = {
-                                                val uid = FirebaseAuthManager.getCurrentUserId();
+                                                val uid = FirebaseAuthManager.getCurrentUserId()
 
-                                                // Consultamos el nombre guardado en la colección "users"
-                                                val userName = if (uid != null) {
-                                                    FirebaseAuthManager.getUserNameFromFirestore(uid) ?: "Usuario"
+                                                if (uid != null) {
+                                                    // 1. Consultar el rol del usuario desde Supabase
+                                                    val user = UsuarioRepository.getUser(uid)
+                                                    val userResult = user.getOrNull()
+
+                                                    // 2. Obtener el nombre del usuario
+                                                    val userName = userResult?.name
+
+                                                    isLoading = false
+
+                                                    // 3. Validar si el rol está pendiente
+                                                    if (userResult?.role == "PENDIENTE" || userResult?.role.isNull_or_Empty()) {
+                                                        navController.navigate("selected_role") {
+                                                            popUpTo("login") { inclusive = true }
+                                                        }
+                                                    } else {
+
+                                                        // 1. Obtener usuario básico desde Supabase
+                                                        val parentResult = UsuarioRepository.getParentProfile(uid).getOrNull()
+                                                        isLoading = false
+
+                                                        if(parentResult == null){
+                                                            navController.navigate("register-parent-profile")
+                                                        } else {
+                                                            navController.navigate("home/$userName/${userResult?.role}") {
+                                                                popUpTo("login") { inclusive = true }
+                                                            }
+                                                        }
+
+
+                                                    }
                                                 } else {
-                                                    "Usuario"
-                                                }
-                                                isLoading = false
-                                                navController.navigate("home/$userName") {
-                                                    popUpTo("login") { inclusive = true }
+                                                    isLoading = false
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Error al recuperar credenciales del usuario",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
                                                 }
                                             },
                                             onFailure = { exception ->
+                                                isLoading = false
                                                 Toast.makeText(
                                                     context,
                                                     exception.message ?: "Error al iniciar sesión",
@@ -395,3 +426,6 @@ fun CustomLoginTextField(
         }
     }
 }
+
+// Helper de extensión para validar nulo o vacío
+private fun String?.isNull_or_Empty(): Boolean = this.isNullOrEmpty() || this == "null"
