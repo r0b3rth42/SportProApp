@@ -275,14 +275,19 @@ fun LoginScreen(
                                                             popUpTo("login") { inclusive = true }
                                                         }
                                                     } else {
+                                                        if(userResult?.role == "PAD") {
+                                                            val parentResult = UsuarioRepository.getParentProfile(uid).getOrNull()
+                                                            isLoading = false
 
-                                                        // 1. Obtener usuario básico desde Supabase
-                                                        val parentResult = UsuarioRepository.getParentProfile(uid).getOrNull()
-                                                        isLoading = false
-
-                                                        if(parentResult == null){
-                                                            navController.navigate("register-parent-profile")
-                                                        } else {
+                                                            if(parentResult == null){
+                                                                navController.navigate("register-parent-profile")
+                                                            } else {
+                                                                navController.navigate("home/$userName/${userResult?.role}") {
+                                                                    popUpTo("login") { inclusive = true }
+                                                                }
+                                                            }
+                                                        }
+                                                        if(userResult?.role == "JUG") {
                                                             navController.navigate("home/$userName/${userResult?.role}") {
                                                                 popUpTo("login") { inclusive = true }
                                                             }

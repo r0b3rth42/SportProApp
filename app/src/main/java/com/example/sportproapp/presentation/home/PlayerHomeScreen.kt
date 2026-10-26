@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -58,10 +59,10 @@ data class UpcomingEvent(
 fun PlayerHomeScreen(
     navController: NavController,
     userName: String = "Carlos Ortiz",
-    userRole: String? = "JUG" // "DT", "JUG", "PAD", "ADM"
+    userRole: String? = "JUG"
 ) {
-    // Estado para consultar los datos del perfil del jugador en Supabase
     var playerProfile by remember { mutableStateOf<JugadorPerfil?>(null) }
+    var isLoadingProfile by remember { mutableStateOf(true) }
     val currentUser = FirebaseAuth.getInstance().currentUser
 
     // Cargar perfil si el usuario actual es un jugador
@@ -71,7 +72,24 @@ fun PlayerHomeScreen(
             val result = UsuarioRepository.getPlayerProfile(uid)
             playerProfile = result.getOrNull()
         }
+        isLoadingProfile = false
     }
+
+    // Calcular si el usuario es menor de edad
+    val esMenorEdad = remember(playerProfile?.fechaNacimiento) {
+        playerProfile?.fechaNacimiento?.let { fechaStr ->
+            try {
+                val fechaNac = java.time.LocalDate.parse(fechaStr)
+                val hoy = java.time.LocalDate.now()
+                java.time.Period.between(fechaNac, hoy).years < 18
+            } catch (e: Exception) {
+                false
+            }
+        } ?: false
+    }
+
+    // Condición de Bloqueo: Es menor y la vinculación está pendiente
+    val requiereVinculacionPadre = esMenorEdad && playerProfile?.estadoVinculacion == "PENDIENTE"
 
     Scaffold(
         containerColor = DarkBackground
@@ -83,7 +101,7 @@ fun PlayerHomeScreen(
                 .padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            // --- 0. CABECERA SUPERIOR (SALUDO, FOTO Y NOTIFICACIONES) ---
+            // --- 0. CABECERA SUPERIOR (SIEMPRE VISIBLE) ---
             item {
                 Row(
                     modifier = Modifier
@@ -96,7 +114,6 @@ fun PlayerHomeScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Avatar Circular
                         Box(
                             modifier = Modifier
                                 .size(48.dp)
@@ -137,7 +154,6 @@ fun PlayerHomeScreen(
                         }
                     }
 
-                    // Botón Notificaciones
                     IconButton(
                         onClick = { /* Ir a notificaciones */ },
                         modifier = Modifier
@@ -155,144 +171,196 @@ fun PlayerHomeScreen(
                 }
             }
 
-            // --- 1. TARJETA DE VINCULACIÓN DE APODERADO (SI ES MENOR Y PENDIENTE) ---
-            playerProfile?.let { perfil ->
-                if (perfil.estadoVinculacion == "PENDIENTE" && !perfil.codigoVinculacion.isNullOrEmpty()) {
-                    item {
-                        val esMenorEdadManual = remember(perfil.fechaNacimiento) {
-                            try {
-                                val fechaNac = java.time.LocalDate.parse(perfil.fechaNacimiento)
-                                val hoy = java.time.LocalDate.now()
-                                java.time.Period.between(fechaNac, hoy).years < 18
-                            } catch (e: Exception) {
-                                false
-                            }
-                        }
+            // =========================================================================
+            // LÓGICA DE BLOQUEO: SI REQUIERE VINCULACIÓN, SOLO SE MUESTRA EL CÓDIGO
+            // =========================================================================
+            if (requiereVinculacionPadre) {
 
-                        if (esMenorEdadManual) {
-                            PendingParentLinkCard(
-                                codigoVinculacion = perfil.codigoVinculacion,
-                                onCardClick = { navController.navigate("link_parent_code") }
-                            )
+                // 1. TARJETA DE CÓDIGO DE VINCULACIÓN
+                item {
+                    PendingParentLinkCard(
+                        codigoVinculacion = playerProfile?.codigoVinculacion ?: "Cargando...",
+                        onCardClick = { navController.navigate("link_parent_code") }
+                    )
+                }
+
+                // 2. BANNER DE ACCESO BLOQUEADO / RESTRINGIDO
+                item {
+                    LockedAccountCard()
+                }
+
+            } else {
+
+                // =========================================================================
+                // FLUJO NORMAL (CUANDO YA ESTÁ VINCULADO O ES MAYOR DE EDAD)
+                // =========================================================================
+
+                // --- 1. BANNER DE PRÓXIMO ENTRENAMIENTO ---
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(1.dp, CardBorderColor, RoundedCornerShape(20.dp)),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = DarkCardBackground)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Próximo Entrenamiento",
+                                    color = PrimaryLime,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Categoría Sub-17",
+                                    color = Color.White,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Outlined.Schedule, contentDescription = null, tint = TextMuted, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Hoy, 4:30 PM", color = TextLight, fontSize = 13.sp)
+                                }
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Outlined.Place, contentDescription = null, tint = TextMuted, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Cancha Principal N° 2", color = TextLight, fontSize = 13.sp)
+                                }
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .size(50.dp)
+                                    .background(PrimaryLime, shape = CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.SportsSoccer,
+                                    contentDescription = null,
+                                    tint = DarkBackground,
+                                    modifier = Modifier.size(28.dp)
+                                )
+                            }
                         }
                     }
                 }
-            }
 
-            // --- 2. BANNER DE PRÓXIMO ENTRENAMIENTO ---
-            item {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .border(1.dp, CardBorderColor, RoundedCornerShape(20.dp)),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = DarkCardBackground)
-                ) {
+                // --- 2. ACCIONES RÁPIDAS ---
+                item {
+                    Column {
+                        Text(
+                            text = "Acciones rápidas",
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        val actions = getRoleQuickActions(userRole)
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(actions) { action ->
+                                QuickActionItem(action = action) {
+                                    navController.navigate(action.route)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // --- 3. PRÓXIMOS EVENTOS Y CONVOCATORIAS ---
+                item {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(20.dp),
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Próximo Entrenamiento",
-                                color = PrimaryLime,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "Categoría Sub-17",
-                                color = Color.White,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Outlined.Schedule, contentDescription = null, tint = TextMuted, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Hoy, 4:30 PM", color = TextLight, fontSize = 13.sp)
-                            }
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Outlined.Place, contentDescription = null, tint = TextMuted, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Cancha Principal N° 2", color = TextLight, fontSize = 13.sp)
-                            }
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .size(50.dp)
-                                .background(PrimaryLime, shape = CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.SportsSoccer,
-                                contentDescription = null,
-                                tint = DarkBackground,
-                                modifier = Modifier.size(28.dp)
-                            )
+                        Text(
+                            text = "Agenda y Convocatorias",
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        TextButton(onClick = { /* Ver todo */ }) {
+                            Text("Ver todo", color = PrimaryLime, fontSize = 13.sp)
                         }
                     }
                 }
-            }
 
-            // --- 3. ACCIONES RÁPIDAS ---
-            item {
-                Column {
-                    Text(
-                        text = "Acciones rápidas",
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
+                val mockEvents = listOf(
+                    UpcomingEvent("Partido vs Academia Central", "Torneo Local", "10:00 AM", "Sáb, 12 Oct", "Estadio Municipal"),
+                    UpcomingEvent("Entrenamiento Táctico", "Sub-17", "04:30 PM", "Mar, 15 Oct", "Cancha N° 1"),
+                    UpcomingEvent("Reunión de Padres / Apoderados", "Institucional", "07:00 PM", "Jue, 17 Oct", "Aula Magna")
+                )
 
-                    val actions = getRoleQuickActions(userRole)
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(actions) { action ->
-                            QuickActionItem(action = action) {
-                                navController.navigate(action.route)
-                            }
-                        }
-                    }
+                items(mockEvents) { event ->
+                    EventCard(event = event)
                 }
-            }
-
-            // --- 4. PRÓXIMOS EVENTOS Y CONVOCATORIAS ---
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Agenda y Convocatorias",
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    TextButton(onClick = { /* Ver todo */ }) {
-                        Text("Ver todo", color = PrimaryLime, fontSize = 13.sp)
-                    }
-                }
-            }
-
-            val mockEvents = listOf(
-                UpcomingEvent("Partido vs Academia Central", "Torneo Local", "10:00 AM", "Sáb, 12 Oct", "Estadio Municipal"),
-                UpcomingEvent("Entrenamiento Táctico", "Sub-17", "04:30 PM", "Mar, 15 Oct", "Cancha N° 1"),
-                UpcomingEvent("Reunión de Padres / Apoderados", "Institucional", "07:00 PM", "Jue, 17 Oct", "Aula Magna")
-            )
-
-            items(mockEvents) { event ->
-                EventCard(event = event)
             }
 
             item { Spacer(modifier = Modifier.height(20.dp)) }
+        }
+    }
+}
+
+// --- COMPONENTE: TARJETA DE CUENTA BLOQUEADA / ESPERANDO VINCULACIÓN ---
+@Composable
+fun LockedAccountCard() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, Color(0xFFFFB74D), RoundedCornerShape(20.dp)),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = DarkCardBackground)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .background(Color(0xFF332308), CircleShape)
+                    .border(1.dp, Color(0xFFFFB74D), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Lock,
+                    contentDescription = "Bloqueado",
+                    tint = Color(0xFFFFB74D),
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+
+            Text(
+                text = "Acceso Restringido",
+                color = Color.White,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = "Tu cuenta está pendiente de autorización por parte de tu apoderado. " +
+                        "Comparte tu código de vinculación para activar tus entrenamientos, partidos y estadísticas.",
+                color = TextMuted,
+                fontSize = 13.sp,
+                textAlign = TextAlign.Center,
+                lineHeight = 18.sp
+            )
         }
     }
 }
@@ -351,7 +419,7 @@ fun PendingParentLinkCard(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Toca para ver el código en pantalla completa",
+                            text = "Muestra este código a tu apoderado",
                             color = TextMuted,
                             fontSize = 12.sp
                         )
