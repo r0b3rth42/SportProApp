@@ -1,6 +1,8 @@
 package com.example.sportproapp.data.remote.supabase
 
 import PadrePerfil
+import com.example.sportproapp.data.model.Academia
+import com.example.sportproapp.data.model.AdminPerfil
 import com.example.sportproapp.data.model.JugadorConUsuario
 import com.example.sportproapp.data.model.JugadorPerfil
 import com.example.sportproapp.data.model.PadreConUsuario
@@ -221,6 +223,47 @@ object UsuarioRepository {
             val perfil = perfilDeferred.await()
 
             Result.success(PadreConUsuario(usuario = usuario, perfil = perfil))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    suspend fun saveAdminProfile(idAdmin: String, academiaId: String, cargo: String): Result<Unit> {
+        return try {
+            supabase.from("administradores").upsert(
+                AdminPerfil(
+                    id = idAdmin,
+                    academiaId = academiaId.trim(),
+                    cargo = cargo.trim()
+                )
+            )
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getAdminProfile(idAdmin: String): Result<AdminPerfil> {
+        return try {
+            val perfil = supabase.from("administradores")
+                .select {
+                    filter {
+                        eq("id", idAdmin)
+                    }
+                }
+                .decodeSingle<AdminPerfil>()
+            Result.success(perfil)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Agrega este método dentro de UsuarioRepository.kt
+    suspend fun getAcademias(): Result<List<Academia>> {
+        return try {
+            val lista = supabase.from("academias")
+                .select()
+                .decodeList<Academia>()
+            Result.success(lista)
         } catch (e: Exception) {
             Result.failure(e)
         }
