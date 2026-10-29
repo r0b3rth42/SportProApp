@@ -292,6 +292,20 @@ fun LoginScreen(
                                                                 popUpTo("login") { inclusive = true }
                                                             }
                                                         }
+                                                        if(userResult?.role == "ADM") {
+                                                            val adminProfile = UsuarioRepository.getAdminProfile(uid).getOrNull()
+                                                            isLoading = false
+
+                                                            if (adminProfile == null) {
+                                                                navController.navigate("register-admin-profile") {
+                                                                    popUpTo("login") { inclusive = true }
+                                                                }
+                                                            } else {
+                                                                navController.navigate("home/$userName/ADM") {
+                                                                    popUpTo("login") { inclusive = true }
+                                                                }
+                                                            }
+                                                        }
 
 
                                                     }

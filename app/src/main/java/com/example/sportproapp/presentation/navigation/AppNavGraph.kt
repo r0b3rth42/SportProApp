@@ -15,6 +15,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.sportproapp.presentation.auth.AdminProfileCompletionScreen
 import com.example.sportproapp.presentation.auth.LinkParentCodeScreen
 import com.example.sportproapp.presentation.auth.LoginScreen
 import com.example.sportproapp.presentation.auth.ParentProfileCompletionScreen
@@ -105,6 +106,7 @@ fun AppNavGraph(
             composable("register-player-profile") { PlayerProfileCompletionScreen(navController) }
             composable("register-parent-profile") { ParentProfileCompletionScreen(navController) }
             composable("link_parent_code") { LinkParentCodeScreen(navController = navController) }
+            composable("register-admin-profile") { AdminProfileCompletionScreen(navController = navController) }
         }
     }
 }
