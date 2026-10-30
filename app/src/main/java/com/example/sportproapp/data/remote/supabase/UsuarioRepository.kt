@@ -184,6 +184,66 @@ object UsuarioRepository {
         }
     }
 
+    suspend fun getJugadoresSinEquipoConUsuario(): Result<List<JugadorConUsuario>> {
+        return try {
+            val sinEquipo = getJugadoresSinEquipo().getOrThrow()
+            val listaCompleta = sinEquipo.mapNotNull { perfilJugador ->
+                val usuarioData = getUser(perfilJugador.id).getOrNull()
+                if(usuarioData != null){
+                    JugadorConUsuario(usuario = usuarioData, perfil = perfilJugador)
+                } else null
+            }
+            Result.success(listaCompleta)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getJugadoresSinEquipo(): Result<List<JugadorPerfil>> {
+        return try {
+            val lista = supabase.from("jugadores")
+                .select {
+                    filter {
+                        exact("equipo_id",null)
+                    }
+                }
+                .decodeList<JugadorPerfil>()
+            Result.success(lista)
+        } catch (ex: Exception) {
+            Result.failure(ex)
+        }
+    }
+
+    suspend fun getJugadoresConEquipoConUsuario(equipoId: String): Result<List<JugadorConUsuario>> {
+        return try {
+            val conEquipo = getJugadoresConEquipo(equipoId).getOrThrow()
+            val listaCompleta = conEquipo.mapNotNull { perfilJugador ->
+                val usuarioData = getUser(perfilJugador.id).getOrNull()
+                if(usuarioData != null){
+                    JugadorConUsuario(usuario = usuarioData, perfil = perfilJugador)
+                } else null
+            }
+            Result.success(listaCompleta)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getJugadoresConEquipo(equipoId: String): Result<List<JugadorPerfil>> {
+        return try {
+            val lista = supabase.from("jugadores")
+                .select {
+                    filter {
+                        eq("equipo_id",equipoId)
+                    }
+                }
+                .decodeList<JugadorPerfil>()
+            Result.success(lista)
+        } catch (ex: Exception) {
+            Result.failure(ex)
+        }
+    }
+
     suspend fun saveParentProfile(idPadre: String, direccion: String): Result<Unit> {
         return try {
             supabase.from("apoderados").upsert(
@@ -264,6 +324,22 @@ object UsuarioRepository {
                 .select()
                 .decodeList<Academia>()
             Result.success(lista)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // --- ACTUALIZAR EL EQUIPO DE UN JUGADOR ---
+    suspend fun assignPlayerToTeam(playerId: String, teamId: String): Result<Unit> {
+        return try {
+            supabase.from("jugadores").update({
+                set("equipo_id", teamId)
+            }) {
+                filter {
+                    eq("id", playerId)
+                }
+            }
+            Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }

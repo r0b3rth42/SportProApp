@@ -21,34 +21,29 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.sportproapp.data.model.JugadorConUsuario
 import com.example.sportproapp.presentation.auth.*
-
-// --- MODELOS DE DATOS ---
-data class Player(
-    val id: String,
-    val name: String,
-    val position: String,
-    val number: Int,
-    val status: PlayerStatus
-)
-
-enum class PlayerStatus(val text: String, val color: Color) {
-    ACTIVE("Activo", Color(0xFF4CAF50)),      // Verde
-    INJURED("Lesionado", Color(0xFFF44336))   // Rojo
-}
 
 @Composable
 fun TeamDetailScreen(
     navController: NavController,
-    teamName: String = "Sin asignar",
-    category: String = "Sin asignar",
+    teamId: String,
+    teamName: String, // Heredado directamente de la navegación
+    category: String, // Heredado directamente de la navegación
     playerCount: Int = 18,
-    season: String = "Temp. 2026"
+    season: String = "Temp. 2026",
+    viewModel: TeamDetailViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) } // Tabs: Jugadores, Calendario, Estadísticas
+    var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf("Jugadores", "Calendario", "Estadísticas")
 
-    // Contenedor principal con fondo oscuro
+    var showAddPlayerDialog by remember { mutableStateOf(false) }
+    val playersUiState by viewModel.playersUiState.collectAsState()
+
+    LaunchedEffect(teamId) {
+        viewModel.fetchTeamPlayers(teamId)
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -61,23 +56,17 @@ fun TeamDetailScreen(
         ) {
             Spacer(modifier = Modifier.height(20.dp))
 
-            // --- 1. CABECERA DEL EQUIPO ---
             TeamHeaderCard(
                 teamName = teamName,
                 category = category,
                 playerCount = playerCount,
                 season = season,
-                onBackClick = {
-                    navController.navigate("teams") {
-                        popUpTo("teams") { inclusive = true }
-                    }
-                },
-                onEditClick = { /* Acción de editar */ }
+                onBackClick = { navController.popBackStack() },
+                onEditClick = {}
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- 2. TABS (Jugadores, Calendario, Estadísticas) ---
             CustomTabs(
                 tabs = tabs,
                 selectedTabIndex = selectedTab,
@@ -86,26 +75,39 @@ fun TeamDetailScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- 3. LISTA DE JUGADORES ---
             if (selectedTab == 0) {
-                val players = listOf(
-                    Player("1", "Santiago Méndez", "Mediocampista", 10, PlayerStatus.ACTIVE),
-                    Player("2", "Mateo López", "Delantero", 7, PlayerStatus.ACTIVE),
-                    Player("3", "Carlos Ruiz", "Portero", 1, PlayerStatus.INJURED)
-                )
-
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(players) { player ->
-                        PlayerCardItem(
-                            player = player,
-                            onClick = { navController.navigate("player-profile/${player.id}") }
-                        )
+                when (val state = playersUiState) {
+                    is TeamPlayersUiState.Loading -> {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(color = PrimaryLime)
+                        }
                     }
-                    // Espacio adicional abajo para evitar que el contenido sea tapado por la barra inferior global
-                    item { Spacer(modifier = Modifier.height(90.dp)) }
+                    is TeamPlayersUiState.Error -> {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(text = state.message, color = MaterialTheme.colorScheme.error)
+                        }
+                    }
+                    is TeamPlayersUiState.Success -> {
+                        val players = state.players
+                        if (players.isEmpty()) {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Text(text = "No hay jugadores en este equipo", color = TextMuted)
+                            }
+                        } else {
+                            LazyColumn(
+                                verticalArrangement = Arrangement.spacedBy(12.dp),
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                items(players) { playerConUsuario ->
+                                    PlayerConUsuarioCardItem(
+                                        playerData = playerConUsuario,
+                                        onClick = { navController.navigate("player-profile/${playerConUsuario.usuario.id}") }
+                                    )
+                                }
+                                item { Spacer(modifier = Modifier.height(90.dp)) }
+                            }
+                        }
+                    }
                 }
             } else {
                 Box(
@@ -119,9 +121,11 @@ fun TeamDetailScreen(
             }
         }
 
-        // --- 4. BOTÓN FLOTANTE (FAB) ---
         FloatingActionButton(
-            onClick = { /* Acción para agregar jugador */ },
+            onClick = {
+                viewModel.fetchUnassignedPlayers()
+                showAddPlayerDialog = true
+            },
             containerColor = PrimaryLime,
             contentColor = DarkBackground,
             shape = CircleShape,
@@ -132,14 +136,195 @@ fun TeamDetailScreen(
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
-                contentDescription = "Agregar Jugador",
+                contentDescription = "Añadir jugador existente",
                 modifier = Modifier.size(32.dp)
+            )
+        }
+
+        if (showAddPlayerDialog) {
+            SelectUnassignedPlayerDialog(
+                viewModel = viewModel,
+                onDismiss = { showAddPlayerDialog = false },
+                onPlayerSelected = { playerId ->
+                    viewModel.assignPlayerToTeam(playerId, teamId) {
+                        showAddPlayerDialog = false
+                    }
+                }
             )
         }
     }
 }
 
-// --- COMPONENTE: CABECERA DEL EQUIPO ---
+@Composable
+fun SelectUnassignedPlayerDialog(
+    viewModel: TeamDetailViewModel,
+    onDismiss: () -> Unit,
+    onPlayerSelected: (String) -> Unit
+) {
+    val unassignedState by viewModel.unassignedUiState.collectAsState()
+
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
+        containerColor = DarkCardBackground,
+        title = {
+            Text(text = "Añadir Jugador al Equipo", color = Color.White, fontSize = 18.sp)
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(250.dp)
+            ) {
+                Text(
+                    text = "Selecciona un jugador sin equipo:",
+                    color = TextMuted,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+
+                when (val state = unassignedState) {
+                    is UnassignedPlayersUiState.Loading -> {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(color = PrimaryLime)
+                        }
+                    }
+                    is UnassignedPlayersUiState.Error -> {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(text = state.message, color = MaterialTheme.colorScheme.error)
+                        }
+                    }
+                    is UnassignedPlayersUiState.Success -> {
+                        val unassignedPlayers = state.players
+                        if (unassignedPlayers.isEmpty()) {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Text(text = "No hay jugadores libres disponibles", color = TextMuted)
+                            }
+                        } else {
+                            LazyColumn(
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                items(unassignedPlayers) { playerConUsuario ->
+                                    Card(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable { onPlayerSelected(playerConUsuario.usuario.id) }
+                                            .border(1.dp, CardBorderColor, RoundedCornerShape(8.dp)),
+                                        colors = CardDefaults.cardColors(containerColor = InputBackgroundColor)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(12.dp),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column {
+                                                Text(
+                                                    text = playerConUsuario.usuario.name,
+                                                    color = Color.White,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 14.sp
+                                                )
+                                                Text(
+                                                    text = playerConUsuario.perfil.posicion,
+                                                    color = TextMuted,
+                                                    fontSize = 12.sp
+                                                )
+                                            }
+
+                                            Surface(
+                                                color = PrimaryLime,
+                                                shape = RoundedCornerShape(6.dp)
+                                            ) {
+                                                Text(
+                                                    text = "Añadir",
+                                                    color = DarkBackground,
+                                                    fontSize = 11.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = { onDismiss() }) {
+                Text(text = "Cancelar", color = PrimaryLime)
+            }
+        }
+    )
+}
+
+@Composable
+fun PlayerConUsuarioCardItem(
+    playerData: JugadorConUsuario,
+    onClick: () -> Unit = {}
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .border(1.dp, CardBorderColor, RoundedCornerShape(16.dp)),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = DarkCardBackground)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(Color.Gray, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Person,
+                    contentDescription = null,
+                    tint = Color.White
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = playerData.usuario.name,
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = playerData.perfil.posicion,
+                    color = TextMuted,
+                    fontSize = 12.sp
+                )
+            }
+
+            Text(
+                text = "por ahora nada",
+                color = PrimaryLime,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier
+                    .background(PrimaryLime.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            )
+        }
+    }
+}
+
 @Composable
 fun TeamHeaderCard(
     teamName: String,
@@ -166,7 +351,6 @@ fun TeamHeaderCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Botón Atrás
                 Box(
                     modifier = Modifier
                         .size(36.dp)
@@ -182,7 +366,6 @@ fun TeamHeaderCard(
                     )
                 }
 
-                // Botón Editar
                 Button(
                     onClick = onEditClick,
                     colors = ButtonDefaults.buttonColors(
@@ -231,7 +414,6 @@ fun TeamHeaderCard(
     }
 }
 
-// --- COMPONENTE: TABS PERSONALIZADOS ---
 @Composable
 fun CustomTabs(
     tabs: List<String>,
@@ -271,69 +453,6 @@ fun CustomTabs(
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                 )
             }
-        }
-    }
-}
-
-// --- COMPONENTE: ITEM DE JUGADOR ---
-@Composable
-fun PlayerCardItem(
-    player: Player,
-    onClick: () -> Unit = {}
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .border(1.dp, CardBorderColor, RoundedCornerShape(16.dp)),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = DarkCardBackground)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(Color.Gray, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Person,
-                    contentDescription = null,
-                    tint = Color.White
-                )
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = player.name,
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = "${player.position} • Dorsal #${player.number}",
-                    color = TextMuted,
-                    fontSize = 12.sp
-                )
-            }
-
-            Text(
-                text = player.status.text,
-                color = player.status.color,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier
-                    .background(player.status.color.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            )
         }
     }
 }

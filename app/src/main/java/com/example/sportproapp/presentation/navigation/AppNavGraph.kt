@@ -79,9 +79,35 @@ fun AppNavGraph(
 
             composable("register") { RegisterScreen(navController) }
             composable("login") { LoginScreen(navController) }
-            composable("teams") { TeamsListScreen(navController) }
+            composable("teams") {
+                TeamsListScreen(
+                    navController = navController,
+                    onTeamClick = { team ->
+                        // Aquí manejamos la navegación centralizada recibiendo el objeto team
+                        val encodedName = java.net.URLEncoder.encode(team.name, "UTF-8")
+                        val encodedCategory = java.net.URLEncoder.encode(team.category, "UTF-8")
+                        navController.navigate("team-detail/${team.id}/$encodedName/$encodedCategory")
+                    }
+                )
+            }
             composable("teams-create") { CreateTeamScreen(navController) }
-            composable("jugador") { TeamDetailScreen(navController) }
+            composable(
+                route = "team-detail/{teamId}/{teamName}/{category}"
+            ) { backStackEntry ->
+                val teamId = backStackEntry.arguments?.getString("teamId") ?: ""
+                val rawName = backStackEntry.arguments?.getString("teamName") ?: "Equipo"
+                val rawCategory = backStackEntry.arguments?.getString("category") ?: "Sin categoría"
+
+                val teamName = java.net.URLDecoder.decode(rawName, "UTF-8")
+                val category = java.net.URLDecoder.decode(rawCategory, "UTF-8")
+
+                TeamDetailScreen(
+                    navController = navController,
+                    teamId = teamId,
+                    teamName = teamName,
+                    category = category
+                )
+            }
 
             composable("player-profile/{playerId}") { backStackEntry ->
                 val playerId = backStackEntry.arguments?.getString("playerId") ?: "1"

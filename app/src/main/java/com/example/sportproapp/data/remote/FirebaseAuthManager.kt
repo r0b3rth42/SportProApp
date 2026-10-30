@@ -1,8 +1,6 @@
 package com.example.sportproapp.data.remote
 
-import com.example.sportproapp.data.model.TeamModel
-import com.example.sportproapp.data.model.UserRole
-import com.example.sportproapp.data.model.UserStatus
+import com.example.sportproapp.data.model.Equipo
 import com.example.sportproapp.data.model.Usuarios
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -38,20 +36,7 @@ object FirebaseAuthManager {
         }
     }
 
-    suspend fun registerTeam(teamName: String, category: String, entrenador: String): Result<Unit> {
 
-        val team = TeamModel(name = teamName, category = category, coachName = entrenador )
-
-        return try {
-            val docRef = firestore.collection("teams").document()
-            val teamtoSave = team.copy(id = docRef.id)
-
-            docRef.set(teamtoSave).await()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
 
     fun getCurrentUserId(): String? {
         return auth.currentUser?.uid
