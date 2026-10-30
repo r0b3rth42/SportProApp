@@ -15,5 +15,5 @@ data class JugadorPerfil(
     @SerialName("contacto_emergencia_nombre") val contactoEmergenciaNombre: String,
     @SerialName("contacto_emergencia_telefono") val contactoEmergenciaTelefono: String,
     @SerialName("codigo_vinculacion") val codigoVinculacion: String? = null, // Código de 6 dígitos
-    @SerialName("estado_vinculacion") val estadoVinculacion: String = "PENDIENTE",
+    @SerialName("estado_vinculacion") val estadoVinculacion: String? = null,
 )
