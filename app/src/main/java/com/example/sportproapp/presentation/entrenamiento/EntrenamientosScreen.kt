@@ -20,12 +20,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.sportproapp.presentation.auth.DarkCardBackground
-import com.example.sportproapp.presentation.auth.PrimaryLime
-import com.example.sportproapp.presentation.auth.TextMuted
 
-// Colores del diseño de Figma
 val BackgroundColor = Color(0xFF09120F)
 val CardBackgroundColor = Color(0xFF0F1E19)
 val PrimaryGreen = Color(0xFFCCFF00)
@@ -35,16 +32,10 @@ val CardBorderColor = Color(0xFF1B2E28)
 @Composable
 fun EntrenamientosScreen(
     navController: NavController,
-    onAddClick: () -> Unit // Función que se ejecutará al presionar el botón +
+    onAddClick: () -> Unit,
+    viewModel: EntrenamientosViewModel = viewModel()
 ) {
-    // Datos de prueba basados en tu imagen de Figma
-    val listaEntrenamientos = remember {
-        listOf(
-            Entrenamiento("1", "16:30 - 18:00", "Tigres Sub-15", "Cancha de Fútbol 11 (Césped)", 5, EstadoEntrenamiento.EN_CURSO),
-            Entrenamiento("2", "18:00 - 19:30", "Halcones Sub-17", "Campo Sintético Auxiliar", 4, EstadoEntrenamiento.PLANIFICADO),
-            Entrenamiento("3", "19:30 - 21:00", "Fútbol Femenino Mayor", "Gimnasio & Arena", 3, EstadoEntrenamiento.COMPLETADO)
-        )
-    }
+    val uiState by viewModel.uiState.collectAsState()
 
     Box(
         modifier = Modifier
@@ -82,7 +73,7 @@ fun EntrenamientosScreen(
             // Subtítulo
             item {
                 Text(
-                    text = "Sesiones de hoy",
+                    text = "Sesiones registradas",
                     color = Color.White,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
@@ -90,17 +81,75 @@ fun EntrenamientosScreen(
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            // Lista de Tarjetas de Entrenamientos
-            items(listaEntrenamientos) { entrenamiento ->
-                TarjetaEntrenamiento(entrenamiento)
-                Spacer(modifier = Modifier.height(12.dp))
+            // Renderizado condicional según UiState desde Supabase
+            when (val state = uiState) {
+                is EntrenamientosUiState.Loading -> {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = PrimaryGreen)
+                        }
+                    }
+                }
+                is EntrenamientosUiState.Error -> {
+                    item {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = CardBackgroundColor),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = state.message,
+                                    color = MaterialTheme.colorScheme.error,
+                                    fontSize = 14.sp
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Button(
+                                    onClick = { viewModel.fetchEntrenamientos() },
+                                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)
+                                ) {
+                                    Text("Reintentar", color = Color.Black)
+                                }
+                            }
+                        }
+                    }
+                }
+                is EntrenamientosUiState.Success -> {
+                    if (state.entrenamientos.isEmpty()) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 32.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "No hay entrenamientos programados.",
+                                    color = TextGray,
+                                    fontSize = 14.sp
+                                )
+                            }
+                        }
+                    } else {
+                        items(state.entrenamientos) { entrenamiento ->
+                            TarjetaEntrenamiento(entrenamiento)
+                            Spacer(modifier = Modifier.height(12.dp))
+                        }
+                    }
+                }
             }
 
-            // Margen para evitar solapamiento con la barra de navegación global
             item { Spacer(modifier = Modifier.height(90.dp)) }
         }
 
-        // Botón (+) Verde
+        // Botón Floating Action (+)
         FloatingActionButton(
             onClick = onAddClick,
             containerColor = PrimaryGreen,
@@ -131,7 +180,7 @@ fun SelectorDiasSemana() {
         "S" to "18",
         "D" to "19"
     )
-    val diaSeleccionado = "15" // El día seleccionado en Figma (Miércoles 15)
+    val diaSeleccionado = "15"
 
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -181,7 +230,7 @@ fun TarjetaEntrenamiento(entrenamiento: Entrenamiento) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            // Fila de la Hora y Estado
+            // Horario y Estado
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -196,25 +245,25 @@ fun TarjetaEntrenamiento(entrenamiento: Entrenamiento) {
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = entrenamiento.horaInicioFin,
+                        text = "${entrenamiento.horaIni} - ${entrenamiento.horaFin}",
                         color = PrimaryGreen,
-                        fontSize = 16.sp,
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
 
-                // Badge Estado
                 Box(
                     modifier = Modifier
                         .border(1.dp, PrimaryGreen, RoundedCornerShape(12.dp))
                         .padding(horizontal = 10.dp, vertical = 4.dp)
                 ) {
                     Text(
-                        text = entrenamiento.estado.titulo,
+                        text = entrenamiento.estado.toString(),
                         color = when (entrenamiento.estado) {
-                            EstadoEntrenamiento.EN_CURSO -> PrimaryGreen
-                            EstadoEntrenamiento.PLANIFICADO -> TextGray
-                            EstadoEntrenamiento.COMPLETADO -> Color(0xFF00FF66)
+                            1 -> PrimaryGreen
+                            2 -> TextGray
+                            3 -> Color(0xFF00FF66)
+                            else -> { Color(0xFF00FF66)}
                         },
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
@@ -223,12 +272,12 @@ fun TarjetaEntrenamiento(entrenamiento: Entrenamiento) {
             }
 
             Spacer(modifier = Modifier.height(12.dp))
-            Divider(color = CardBorderColor, thickness = 1.dp)
+            HorizontalDivider(color = CardBorderColor, thickness = 1.dp)
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Nombre del Equipo
+            // Equipo
             Text(
-                text = entrenamiento.equipo,
+                text = entrenamiento.equipoId,
                 color = Color.White,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
@@ -236,7 +285,7 @@ fun TarjetaEntrenamiento(entrenamiento: Entrenamiento) {
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            // Ubicación y Número de Ejercicios
+            // Ubicación
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -254,14 +303,14 @@ fun TarjetaEntrenamiento(entrenamiento: Entrenamiento) {
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = entrenamiento.lugar,
+                        text = entrenamiento.sedeId,
                         color = TextGray,
                         fontSize = 13.sp
                     )
                 }
 
                 Text(
-                    text = "${entrenamiento.cantidadEjercicios} ejercicios",
+                    text = entrenamiento.fecha,
                     color = Color.White,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold
