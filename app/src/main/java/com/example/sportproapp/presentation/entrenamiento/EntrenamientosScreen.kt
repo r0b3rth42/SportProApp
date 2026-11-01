@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Schedule
@@ -29,13 +30,23 @@ val PrimaryGreen = Color(0xFFCCFF00)
 val TextGray = Color(0xFF8A9E97)
 val CardBorderColor = Color(0xFF1B2E28)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EntrenamientosScreen(
     navController: NavController,
     onAddClick: () -> Unit,
+    equipoId: String? = null,
+    equipoNombre: String? = null,
     viewModel: EntrenamientosViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    // Si viene un equipoId, se filtran los entrenamientos por ese equipo
+    LaunchedEffect(equipoId) {
+        if (!equipoId.isNullOrBlank()) {
+            viewModel.fetchEntrenamientosPorEquipo(equipoId)
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -47,9 +58,31 @@ fun EntrenamientosScreen(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
         ) {
-            // Header: Título y Subtítulo
+            // Header: Botón Volver (si es pantalla de un equipo) + Título y Subtítulo
             item {
                 Spacer(modifier = Modifier.height(16.dp))
+
+                if (!equipoNombre.isNullOrBlank()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    ) {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Volver",
+                                tint = Color.White
+                            )
+                        }
+                        Text(
+                            text = equipoNombre,
+                            color = PrimaryGreen,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
                 Text(
                     text = "Entrenamientos",
                     color = Color.White,
@@ -57,7 +90,7 @@ fun EntrenamientosScreen(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Planificación semanal",
+                    text = if (!equipoNombre.isNullOrBlank()) "Sesiones de $equipoNombre" else "Planificación semanal",
                     color = TextGray,
                     fontSize = 14.sp
                 )
@@ -112,7 +145,11 @@ fun EntrenamientosScreen(
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Button(
-                                    onClick = { viewModel.fetchEntrenamientos() },
+                                    onClick = {
+                                        if (!equipoId.isNullOrBlank()) {
+                                            viewModel.fetchEntrenamientosPorEquipo(equipoId)
+                                        }
+                                    },
                                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)
                                 ) {
                                     Text("Reintentar", color = Color.Black)
@@ -139,7 +176,7 @@ fun EntrenamientosScreen(
                         }
                     } else {
                         items(state.entrenamientos) { entrenamiento ->
-                            TarjetaEntrenamiento(entrenamiento)
+                            TarjetaEntrenamiento(entrenamiento, nombreEquipoOverride = equipoNombre)
                             Spacer(modifier = Modifier.height(12.dp))
                         }
                     }
@@ -149,7 +186,7 @@ fun EntrenamientosScreen(
             item { Spacer(modifier = Modifier.height(90.dp)) }
         }
 
-        // Botón Floating Action (+)
+        // Botón Floating Action (+) para Crear Entrenamiento
         FloatingActionButton(
             onClick = onAddClick,
             containerColor = PrimaryGreen,
@@ -220,7 +257,10 @@ fun SelectorDiasSemana() {
 }
 
 @Composable
-fun TarjetaEntrenamiento(entrenamiento: Entrenamiento) {
+fun TarjetaEntrenamiento(
+    entrenamiento: Entrenamiento,
+    nombreEquipoOverride: String? = null
+) {
     Card(
         colors = CardDefaults.cardColors(containerColor = CardBackgroundColor),
         shape = RoundedCornerShape(16.dp),
@@ -252,19 +292,22 @@ fun TarjetaEntrenamiento(entrenamiento: Entrenamiento) {
                     )
                 }
 
+                // Cálculo de etiqueta y color por estado
+                val (textoEstado, colorEstado) = when (entrenamiento.estado) {
+                    1 -> "En Curso" to PrimaryGreen
+                    2 -> "Planificado" to TextGray
+                    3 -> "Completado" to Color(0xFF00FF66)
+                    else -> "Programado" to PrimaryGreen
+                }
+
                 Box(
                     modifier = Modifier
-                        .border(1.dp, PrimaryGreen, RoundedCornerShape(12.dp))
+                        .border(1.dp, colorEstado, RoundedCornerShape(12.dp))
                         .padding(horizontal = 10.dp, vertical = 4.dp)
                 ) {
                     Text(
-                        text = entrenamiento.estado.toString(),
-                        color = when (entrenamiento.estado) {
-                            1 -> PrimaryGreen
-                            2 -> TextGray
-                            3 -> Color(0xFF00FF66)
-                            else -> { Color(0xFF00FF66)}
-                        },
+                        text = textoEstado,
+                        color = colorEstado,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -275,9 +318,9 @@ fun TarjetaEntrenamiento(entrenamiento: Entrenamiento) {
             HorizontalDivider(color = CardBorderColor, thickness = 1.dp)
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Equipo
+            // Nombre del Equipo
             Text(
-                text = entrenamiento.equipoId,
+                text = nombreEquipoOverride ?: entrenamiento.equipoId,
                 color = Color.White,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
@@ -285,7 +328,7 @@ fun TarjetaEntrenamiento(entrenamiento: Entrenamiento) {
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            // Ubicación
+            // Ubicación y Fecha
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,

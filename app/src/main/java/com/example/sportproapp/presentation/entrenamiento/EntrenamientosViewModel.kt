@@ -21,21 +21,18 @@ class EntrenamientosViewModel(
     private val _uiState = MutableStateFlow<EntrenamientosUiState>(EntrenamientosUiState.Loading)
     val uiState: StateFlow<EntrenamientosUiState> = _uiState.asStateFlow()
 
-    init {
-        fetchEntrenamientos()
-    }
-
-    fun fetchEntrenamientos() {
+    // 2. Cargar entrenamientos filtrados por un equipo específico
+    fun fetchEntrenamientosPorEquipo(equipoId: String) {
         _uiState.value = EntrenamientosUiState.Loading
         viewModelScope.launch {
-            val result = repository.getEntrenamientosPorEquipo("f9a01cfa-8aa4-430d-9801-e216f0c5b6e4")
+            val result = repository.getEntrenamientosPorEquipo(equipoId)
             result.fold(
                 onSuccess = { lista ->
                     _uiState.value = EntrenamientosUiState.Success(lista)
                 },
                 onFailure = { ex ->
                     _uiState.value = EntrenamientosUiState.Error(
-                        ex.message ?: "Error al cargar entrenamientos"
+                        ex.message ?: "Error al cargar entrenamientos del equipo"
                     )
                 }
             )

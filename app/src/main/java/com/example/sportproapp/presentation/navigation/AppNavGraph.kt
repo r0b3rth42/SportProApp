@@ -11,10 +11,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.sportproapp.presentation.auth.AdminProfileCompletionScreen
 import com.example.sportproapp.presentation.auth.LinkParentCodeScreen
 import com.example.sportproapp.presentation.auth.LoginScreen
@@ -23,7 +25,9 @@ import com.example.sportproapp.presentation.auth.PlayerProfileCompletionScreen
 import com.example.sportproapp.presentation.auth.RegisterScreen
 import com.example.sportproapp.presentation.auth.RoleSelectionScreen
 import com.example.sportproapp.presentation.entrenamiento.CrearEntrenamientoScreen
+import com.example.sportproapp.presentation.entrenamiento.EntrenamientosPorEquipoScreen
 import com.example.sportproapp.presentation.entrenamiento.EntrenamientosScreen
+import com.example.sportproapp.presentation.entrenamiento.EquiposEntrenamientoScreen
 import com.example.sportproapp.presentation.home.AdminHomeScreen
 import com.example.sportproapp.presentation.home.ParentHomeScreen
 import com.example.sportproapp.presentation.home.PlayerHomeScreen
@@ -114,6 +118,7 @@ fun AppNavGraph(
                 PlayerProfileScreen(navController, playerId = playerId)
             }
 
+            /*
             composable("entrenamiento") {
                 EntrenamientosScreen(
                     navController = navController,
@@ -121,10 +126,53 @@ fun AppNavGraph(
                 )
             }
 
+
+
             composable("entrenamiento-create") {
                 CrearEntrenamientoScreen(
                     navController = navController,
                     onCrearClick = { navController.popBackStack() }
+                )
+            }
+
+             */
+
+            composable("entrenamiento") {
+                EquiposEntrenamientoScreen(
+                    navController = navController
+                )
+            }
+
+            composable(
+                route = "entrenamientos_equipo/{equipoId}/{equipoNombre}",
+                arguments = listOf(
+                    navArgument("equipoId") { type = NavType.StringType },
+                    navArgument("equipoNombre") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val equipoId = backStackEntry.arguments?.getString("equipoId") ?: ""
+                val equipoNombre = backStackEntry.arguments?.getString("equipoNombre") ?: "Equipo"
+
+                EntrenamientosPorEquipoScreen(
+                    navController = navController,
+                    equipoId = equipoId,
+                    equipoNombre = equipoNombre
+                )
+            }
+
+            // 3. PANTALLA CREACIÓN: Formulario de nuevo entrenamiento recibiendo el equipo
+            composable(
+                route = "entrenamiento-create/{equipoId}",
+                arguments = listOf(
+                    navArgument("equipoId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val equipoId = backStackEntry.arguments?.getString("equipoId") ?: ""
+
+                // Tu pantalla de creación de entrenamiento (CrearEntrenamientoScreen)
+                CrearEntrenamientoScreen(
+                    navController = navController,
+                    equipoId = equipoId
                 )
             }
 
