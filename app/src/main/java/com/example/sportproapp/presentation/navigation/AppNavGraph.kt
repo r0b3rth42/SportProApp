@@ -25,6 +25,7 @@ import com.example.sportproapp.presentation.auth.PlayerProfileCompletionScreen
 import com.example.sportproapp.presentation.auth.RegisterScreen
 import com.example.sportproapp.presentation.auth.RoleSelectionScreen
 import com.example.sportproapp.presentation.entrenamiento.CrearEntrenamientoScreen
+import com.example.sportproapp.presentation.entrenamiento.DetalleEntrenamientoScreen
 import com.example.sportproapp.presentation.entrenamiento.EntrenamientosPorEquipoScreen
 import com.example.sportproapp.presentation.entrenamiento.EntrenamientosScreen
 import com.example.sportproapp.presentation.entrenamiento.EquiposEntrenamientoScreen
@@ -173,6 +174,20 @@ fun AppNavGraph(
                 CrearEntrenamientoScreen(
                     navController = navController,
                     equipoId = equipoId
+                )
+            }
+
+            composable(
+                route = "detalle_entrenamiento/{entrenamientoId}",
+                arguments = listOf(
+                    navArgument("entrenamientoId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val entrenamientoId = backStackEntry.arguments?.getString("entrenamientoId") ?: ""
+
+                DetalleEntrenamientoScreen(
+                    navController = navController,
+                    entrenamientoId = entrenamientoId
                 )
             }
 

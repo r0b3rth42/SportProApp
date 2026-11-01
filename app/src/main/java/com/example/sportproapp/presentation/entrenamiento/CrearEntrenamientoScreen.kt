@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.sportproapp.data.model.Sede
 
 private val InputBackgroundColor = Color(0xFF0C1915)
 
@@ -39,15 +40,20 @@ fun CrearEntrenamientoScreen(
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
 
+    // Estados para el Combo de Sedes
+    val sedesList by viewModel.sedes.collectAsState()
+    val isLoadingSedes by viewModel.isLoadingSedes.collectAsState()
+    var selectedSede by remember { mutableStateOf<Sede?>(null) }
+    var isSedeDropdownExpanded by remember { mutableStateOf(false) }
+    var sedeError by remember { mutableStateOf(false) }
+
     // Campos del formulario
-    var ubicacion by remember { mutableStateOf("") }
     var fecha by remember { mutableStateOf("2026-11-02") }
     var horaIni by remember { mutableStateOf("16:30:00") }
     var horaFin by remember { mutableStateOf("18:00:00") }
 
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Manejo reactivo de los estados del ViewModel
     LaunchedEffect(uiState) {
         when (val state = uiState) {
             is CrearEntrenamientoUiState.Success -> {
@@ -110,7 +116,6 @@ fun CrearEntrenamientoScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Selector de días de la semana
                 SelectorDiasSemanaCrear()
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -124,14 +129,93 @@ fun CrearEntrenamientoScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Campo Ubicación / Sede
-                CampoFormulario(
-                    titulo = "Ubicación / Sede",
-                    placeholder = "Ej. Cancha de Fútbol 11 (Sede Principal)",
-                    valor = ubicacion,
-                    onValorChange = { ubicacion = it },
-                    icono = Icons.Default.LocationOn
-                )
+                // COMBO / DROPDOWN DE SEDES
+                Column {
+                    Text(
+                        text = "Ubicación / Sede",
+                        color = TextGray,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(bottom = 6.dp)
+                    )
+
+                    ExposedDropdownMenuBox(
+                        expanded = isSedeDropdownExpanded,
+                        onExpandedChange = { if (!isLoadingSedes) isSedeDropdownExpanded = !isSedeDropdownExpanded }
+                    ) {
+                        OutlinedTextField(
+                            value = selectedSede?.nombre ?: "",
+                            onValueChange = {},
+                            readOnly = true,
+                            placeholder = {
+                                Text(
+                                    text = if (isLoadingSedes) "Cargando sedes..." else "Selecciona una sede",
+                                    color = TextGray.copy(alpha = 0.5f),
+                                    fontSize = 15.sp
+                                )
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.LocationOn,
+                                    contentDescription = null,
+                                    tint = TextGray,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            },
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = isSedeDropdownExpanded)
+                            },
+                            isError = sedeError,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = InputBackgroundColor,
+                                unfocusedContainerColor = InputBackgroundColor,
+                                focusedBorderColor = CardBorderColor,
+                                unfocusedBorderColor = CardBorderColor,
+                                cursorColor = PrimaryGreen,
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                errorBorderColor = MaterialTheme.colorScheme.error
+                            )
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = isSedeDropdownExpanded,
+                            onDismissRequest = { isSedeDropdownExpanded = false },
+                            modifier = Modifier.background(CardBackgroundColor)
+                        ) {
+                            if (sedesList.isEmpty()) {
+                                DropdownMenuItem(
+                                    text = { Text("No hay sedes registradas", color = TextGray) },
+                                    onClick = { isSedeDropdownExpanded = false }
+                                )
+                            } else {
+                                sedesList.forEach { sede ->
+                                    DropdownMenuItem(
+                                        text = { Text(sede.nombre, color = Color.White) },
+                                        onClick = {
+                                            selectedSede = sede
+                                            isSedeDropdownExpanded = false
+                                            sedeError = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    if (sedeError) {
+                        Text(
+                            text = "Debes seleccionar una sede",
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 11.sp,
+                            modifier = Modifier.padding(start = 4.dp, top = 2.dp)
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -173,17 +257,21 @@ fun CrearEntrenamientoScreen(
 
                 Spacer(modifier = Modifier.height(28.dp))
 
-                // Botón principal "Crear Entrenamiento"
                 val isLoading = uiState is CrearEntrenamientoUiState.Loading
 
                 Button(
                     onClick = {
+                        if (selectedSede == null) {
+                            sedeError = true
+                            return@Button
+                        }
+
                         viewModel.guardarEntrenamiento(
                             fecha = fecha,
                             horaIni = horaIni,
                             horaFin = horaFin,
                             equipoId = equipoId,
-                            ubicacion = ubicacion
+                            sedeId = selectedSede!!.id
                         )
                     },
                     enabled = !isLoading,

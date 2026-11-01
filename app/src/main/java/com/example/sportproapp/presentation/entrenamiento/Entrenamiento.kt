@@ -17,5 +17,5 @@ data class Entrenamiento(
     @SerialName("hora_fin") val horaFin: String,
     @SerialName("equipo_id") val equipoId: String,
     @SerialName("sede_id") val sedeId: String,
-    @SerialName("estado") val estado: Int
+    @SerialName("estado") val estado: Int? = null
 )
