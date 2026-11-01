@@ -61,6 +61,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.sportproapp.data.remote.FirebaseAuthManager
 import com.example.sportproapp.data.remote.supabase.UsuarioRepository
+import com.example.sportproapp.data.session.UserSession
+import com.example.sportproapp.data.session.UserSessionManager
 import com.example.sportproapp.presentation.components.LoadingScreen
 import kotlinx.coroutines.launch
 
@@ -268,6 +270,28 @@ fun LoginScreen(
                                                     val userName = userResult?.name
 
                                                     isLoading = false
+
+                                                    if (userResult != null) {
+                                                        var academiaId: String? = null
+
+                                                        // Si es Admin, podemos obtener su academiaId
+                                                        if (userResult.role == "ADM") {
+                                                            val adminProfile = UsuarioRepository.getAdminProfile(uid).getOrNull()
+                                                            academiaId = adminProfile?.academiaId
+                                                        }
+
+                                                        // Guardamos en la caché global
+                                                        UserSessionManager.setSession(
+                                                            UserSession(
+                                                                uid = uid,
+                                                                name = userResult.name,
+                                                                email = userResult.email,
+                                                                role = userResult.role,
+                                                                phone = userResult.phone,
+                                                                academiaId = academiaId
+                                                            )
+                                                        )
+                                                    }
 
                                                     // 3. Validar si el rol está pendiente
                                                     if (userResult?.role == "PENDIENTE" || userResult?.role.isNull_or_Empty()) {

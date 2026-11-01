@@ -1,6 +1,5 @@
 package com.example.sportproapp.data.remote.supabase
 
-import com.example.sportproapp.data.model.Equipo
 import com.example.sportproapp.data.remote.supabase
 import com.example.sportproapp.presentation.entrenamiento.Entrenamiento
 import io.github.jan.supabase.postgrest.from
@@ -17,12 +16,12 @@ object EntrenamientoRepository {
         }
     }
 
-    suspend fun getEntrenamientosPorEquipo(academiaId: String): Result<List<Entrenamiento>> {
+    suspend fun getEntrenamientosPorEquipo(equipoId: String): Result<List<Entrenamiento>> {
         return try {
             val lista = supabase.from("entrenamientos")
                 .select {
                     filter {
-                        eq("equipo_id", academiaId)
+                        eq("equipo_id", equipoId)
                     }
                 }
                 .decodeList<Entrenamiento>()
