@@ -2,9 +2,9 @@ package com.example.sportproapp.presentation.entrenamiento
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -54,6 +54,7 @@ fun EntrenamientosPorEquipoScreen(
     equipoId: String,
     equipoNombre: String,
     onAddClick: (equipoId: String) -> Unit = { id -> navController.navigate("entrenamiento-create/$id") },
+    onEntrenamientoClick: (entrenamientoId: String) -> Unit = { id -> navController.navigate("detalle_entrenamiento/$id") },
     viewModel: EntrenamientosPorEquipoViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -130,7 +131,16 @@ fun EntrenamientosPorEquipoScreen(
                         }
                     } else {
                         items(state.entrenamientos) { entrenamiento ->
-                            TarjetaEntrenamientoItem(entrenamiento, equipoNombre)
+                            TarjetaEntrenamientoItem(
+                                entrenamiento = entrenamiento,
+                                equipoNombre = equipoNombre,
+                                onClick = {
+                                    entrenamiento.id?.let { id ->
+                                        // Pasa entrenamientoId y equipoId
+                                        navController.navigate("detalle_entrenamiento/$id/$equipoId")
+                                    }
+                                }
+                            )
                             Spacer(modifier = Modifier.height(12.dp))
                         }
                     }
@@ -143,12 +153,18 @@ fun EntrenamientosPorEquipoScreen(
 }
 
 @Composable
-fun TarjetaEntrenamientoItem(entrenamiento: Entrenamiento, equipoNombre: String) {
+fun TarjetaEntrenamientoItem(
+    entrenamiento: Entrenamiento,
+    equipoNombre: String,
+    onClick: () -> Unit
+) {
     Card(
         colors = CardDefaults.cardColors(containerColor = CardBackgroundColor),
         shape = RoundedCornerShape(16.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, CardBorderColor),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
