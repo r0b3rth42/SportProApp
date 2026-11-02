@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.HowToReg
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
@@ -33,6 +34,7 @@ import com.example.sportproapp.presentation.auth.InputBackgroundColor
 fun DetalleEntrenamientoScreen(
     navController: NavController,
     entrenamientoId: String,
+    equipoId: String,
     fechaSubtitulo: String = "Mier, 15 de Mayo • Tigres Sub-15",
     viewModel: DetalleEntrenamientoViewModel = viewModel()
 ) {
@@ -74,6 +76,20 @@ fun DetalleEntrenamientoScreen(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Volver",
                             tint = Color.White
+                        )
+                    }
+                },
+                actions = {
+                    // ACCIÓN PARA NAVEGAR A ASISTENCIA
+                    IconButton(
+                        onClick = {
+                            navController.navigate("asistencia_entrenamiento/$entrenamientoId/$equipoId")
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.HowToReg,
+                            contentDescription = "Asistencia",
+                            tint = PrimaryGreen
                         )
                     }
                 },

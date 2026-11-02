@@ -24,6 +24,7 @@ import com.example.sportproapp.presentation.auth.ParentProfileCompletionScreen
 import com.example.sportproapp.presentation.auth.PlayerProfileCompletionScreen
 import com.example.sportproapp.presentation.auth.RegisterScreen
 import com.example.sportproapp.presentation.auth.RoleSelectionScreen
+import com.example.sportproapp.presentation.entrenamiento.AsistenciaScreen
 import com.example.sportproapp.presentation.entrenamiento.CrearEntrenamientoScreen
 import com.example.sportproapp.presentation.entrenamiento.DetalleEntrenamientoScreen
 import com.example.sportproapp.presentation.entrenamiento.EntrenamientosPorEquipoScreen
@@ -178,16 +179,36 @@ fun AppNavGraph(
             }
 
             composable(
-                route = "detalle_entrenamiento/{entrenamientoId}",
+                route = "detalle_entrenamiento/{entrenamientoId}/{equipoId}",
                 arguments = listOf(
-                    navArgument("entrenamientoId") { type = NavType.StringType }
+                    navArgument("entrenamientoId") { type = NavType.StringType },
+                    navArgument("equipoId") { type = NavType.StringType }
                 )
             ) { backStackEntry ->
                 val entrenamientoId = backStackEntry.arguments?.getString("entrenamientoId") ?: ""
+                val equipoId = backStackEntry.arguments?.getString("equipoId") ?: ""
 
                 DetalleEntrenamientoScreen(
                     navController = navController,
-                    entrenamientoId = entrenamientoId
+                    entrenamientoId = entrenamientoId,
+                    equipoId = equipoId
+                )
+            }
+
+            composable(
+                route = "asistencia_entrenamiento/{entrenamientoId}/{equipoId}",
+                arguments = listOf(
+                    navArgument("entrenamientoId") { type = NavType.StringType },
+                    navArgument("equipoId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val entrenamientoId = backStackEntry.arguments?.getString("entrenamientoId") ?: ""
+                val equipoId = backStackEntry.arguments?.getString("equipoId") ?: ""
+
+                AsistenciaScreen(
+                    navController = navController,
+                    entrenamientoId = entrenamientoId,
+                    equipoId = equipoId
                 )
             }
 

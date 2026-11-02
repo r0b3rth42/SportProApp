@@ -135,7 +135,10 @@ fun EntrenamientosPorEquipoScreen(
                                 entrenamiento = entrenamiento,
                                 equipoNombre = equipoNombre,
                                 onClick = {
-                                    entrenamiento.id?.let { id -> onEntrenamientoClick(id) }
+                                    entrenamiento.id?.let { id ->
+                                        // Pasa entrenamientoId y equipoId
+                                        navController.navigate("detalle_entrenamiento/$id/$equipoId")
+                                    }
                                 }
                             )
                             Spacer(modifier = Modifier.height(12.dp))
