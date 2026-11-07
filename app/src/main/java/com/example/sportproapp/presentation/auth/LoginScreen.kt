@@ -60,6 +60,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.sportproapp.data.remote.FirebaseAuthManager
+import com.example.sportproapp.data.remote.supabase.UsuarioRepository
+import com.example.sportproapp.data.session.UserSession
+import com.example.sportproapp.data.session.UserSessionManager
 import com.example.sportproapp.presentation.components.LoadingScreen
 import kotlinx.coroutines.launch
 
@@ -256,20 +259,91 @@ fun LoginScreen(
 
                                         result.fold(
                                             onSuccess = {
-                                                val uid = FirebaseAuthManager.getCurrentUserId();
+                                                val uid = FirebaseAuthManager.getCurrentUserId()
 
-                                                // Consultamos el nombre guardado en la colección "users"
-                                                val userName = if (uid != null) {
-                                                    FirebaseAuthManager.getUserNameFromFirestore(uid) ?: "Usuario"
+                                                if (uid != null) {
+                                                    // 1. Consultar el rol del usuario desde Supabase
+                                                    val user = UsuarioRepository.getUser(uid)
+                                                    val userResult = user.getOrNull()
+
+                                                    // 2. Obtener el nombre del usuario
+                                                    val userName = userResult?.name
+
+                                                    isLoading = false
+
+                                                    if (userResult != null) {
+                                                        var academiaId: String? = null
+
+                                                        // Si es Admin, podemos obtener su academiaId
+                                                        if (userResult.role == "ADM") {
+                                                            val adminProfile = UsuarioRepository.getAdminProfile(uid).getOrNull()
+                                                            academiaId = adminProfile?.academiaId
+                                                        }
+
+                                                        // Guardamos en la caché global
+                                                        UserSessionManager.setSession(
+                                                            UserSession(
+                                                                uid = uid,
+                                                                name = userResult.name,
+                                                                email = userResult.email,
+                                                                role = userResult.role,
+                                                                phone = userResult.phone,
+                                                                academiaId = academiaId
+                                                            )
+                                                        )
+                                                    }
+
+                                                    // 3. Validar si el rol está pendiente
+                                                    if (userResult?.role == "PENDIENTE" || userResult?.role.isNull_or_Empty()) {
+                                                        navController.navigate("selected_role") {
+                                                            popUpTo("login") { inclusive = true }
+                                                        }
+                                                    } else {
+                                                        if(userResult?.role == "PAD") {
+                                                            val parentResult = UsuarioRepository.getParentProfile(uid).getOrNull()
+                                                            isLoading = false
+
+                                                            if(parentResult == null){
+                                                                navController.navigate("register-parent-profile")
+                                                            } else {
+                                                                navController.navigate("home/$userName/${userResult?.role}") {
+                                                                    popUpTo("login") { inclusive = true }
+                                                                }
+                                                            }
+                                                        }
+                                                        if(userResult?.role == "JUG") {
+                                                            navController.navigate("home/$userName/${userResult?.role}") {
+                                                                popUpTo("login") { inclusive = true }
+                                                            }
+                                                        }
+                                                        if(userResult?.role == "ADM") {
+                                                            val adminProfile = UsuarioRepository.getAdminProfile(uid).getOrNull()
+                                                            isLoading = false
+
+                                                            if (adminProfile == null) {
+                                                                navController.navigate("register-admin-profile") {
+                                                                    popUpTo("login") { inclusive = true }
+                                                                }
+                                                            } else {
+                                                                navController.navigate("home/$userName/ADM") {
+                                                                    popUpTo("login") { inclusive = true }
+                                                                }
+                                                            }
+                                                        }
+
+
+                                                    }
                                                 } else {
-                                                    "Usuario"
-                                                }
-                                                isLoading = false
-                                                navController.navigate("home/$userName") {
-                                                    popUpTo("login") { inclusive = true }
+                                                    isLoading = false
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Error al recuperar credenciales del usuario",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
                                                 }
                                             },
                                             onFailure = { exception ->
+                                                isLoading = false
                                                 Toast.makeText(
                                                     context,
                                                     exception.message ?: "Error al iniciar sesión",
@@ -395,3 +469,6 @@ fun CustomLoginTextField(
         }
     }
 }
+
+// Helper de extensión para validar nulo o vacío
+private fun String?.isNull_or_Empty(): Boolean = this.isNullOrEmpty() || this == "null"

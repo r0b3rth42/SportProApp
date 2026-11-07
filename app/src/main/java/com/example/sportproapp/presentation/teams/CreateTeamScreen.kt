@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -21,46 +20,51 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.sportproapp.data.remote.FirebaseAuthManager
 import com.example.sportproapp.presentation.auth.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import okhttp3.Dispatcher
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateTeamScreen(
     navController: NavController,
-    onSaveTeamClick: (teamName: String, category: String, coachName: String, color: Color, hasSubdivision: Boolean) -> Unit = { _, _, _, _, _ -> }
+    createTeamViewModel: CreateTeamViewModel = viewModel()
 ) {
-    // Estados del formulario
     var teamName by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("Sub-15") }
-    var coachName by remember { mutableStateOf("Carlos Ortiz") }
-    var hasSubdivision by remember { mutableStateOf(true) }
 
     val context = LocalContext.current
+    val uiState by createTeamViewModel.uiState.collectAsState()
 
-    // Colores disponibles para la franja distintiva
     val availableColors = listOf(
-        Color(0xFFFF2A6D), // Rosa / Magenta
-        PrimaryLime,        // Verde Lima Neón
-        Color(0xFF007AFF), // Azul Neón
-        Color(0xFFFF9500), // Naranja
-        Color(0xFFAF52DE)  // Púrpura
+        Color(0xFFFF2A6D),
+        PrimaryLime,
+        Color(0xFF007AFF),
+        Color(0xFFFF9500),
+        Color(0xFFAF52DE)
     )
     var selectedColor by remember { mutableStateOf(availableColors[0]) }
-
-    // Errores visuales
     var teamNameError by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
+
+    // Reacción reactiva ante cambios en el UiState del ViewModel
+    LaunchedEffect(uiState) {
+        when (val state = uiState) {
+            is CreateTeamUiState.Success -> {
+                Toast.makeText(context, "Equipo creado exitosamente en Supabase", Toast.LENGTH_SHORT).show()
+                createTeamViewModel.resetState()
+                navController.popBackStack()
+            }
+            is CreateTeamUiState.Error -> {
+                snackbarHostState.showSnackbar(state.message)
+                createTeamViewModel.resetState()
+            }
+            else -> {}
+        }
+    }
 
     Scaffold(
         containerColor = DarkBackground,
@@ -175,7 +179,6 @@ fun CreateTeamScreen(
                                 fontWeight = FontWeight.Bold
                             )
 
-                            // Nombre del equipo
                             CustomTeamTextField(
                                 label = "Nombre del equipo",
                                 value = teamName,
@@ -191,7 +194,6 @@ fun CreateTeamScreen(
                                 }
                             )
 
-                            // Categoría / División
                             CustomTeamTextField(
                                 label = "Categoría",
                                 value = category,
@@ -201,83 +203,25 @@ fun CreateTeamScreen(
                                     Icon(Icons.Outlined.Category, contentDescription = null, tint = TextMuted)
                                 }
                             )
-
-                            // Entrenador asignado
-                            CustomTeamTextField(
-                                label = "Entrenador / DT a cargo",
-                                value = coachName,
-                                onValueChange = { coachName = it },
-                                placeholder = "Nombre del entrenador",
-                                leadingIcon = {
-                                    Icon(Icons.Outlined.Person, contentDescription = null, tint = TextMuted)
-                                }
-                            )
-
-                            // Checkbox: Sub-división
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { hasSubdivision = !hasSubdivision },
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Checkbox(
-                                    checked = hasSubdivision,
-                                    onCheckedChange = { hasSubdivision = it },
-                                    colors = CheckboxDefaults.colors(
-                                        checkedColor = PrimaryLime,
-                                        checkmarkColor = DarkBackground,
-                                        uncheckedColor = TextMuted
-                                    )
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Column {
-                                    Text(
-                                        text = "Habilitar etiqueta (+ sub-división)",
-                                        color = TextLight,
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                    Text(
-                                        text = "Permite agrupar jugadores en planteles secundarios",
-                                        color = TextMuted,
-                                        fontSize = 12.sp
-                                    )
-                                }
-                            }
                         }
                     }
                 }
 
-                // --- 3. BOTÓN DE GUARDADO ---
+                // --- 3. BOTÓN DE GUARDADO CON LÓGICA DE VIEWMODEL ---
+                val isLoading = uiState is CreateTeamUiState.Loading
+
                 Button(
                     onClick = {
-                        if (teamName.isBlank()) {
-                            teamNameError = true
-                            scope.launch {
-                                snackbarHostState.showSnackbar("Por favor ingresa un nombre para el equipo")
-                            }
-                        } else {
-                            teamNameError = false
-                            CoroutineScope(Dispatchers.Main).launch {
-                                 val result = FirebaseAuthManager.registerTeam(teamName, category, coachName)
-                                result.fold(
-                                    onSuccess = {
-                                        navController.navigate("teams")
-                                    },
-                                    onFailure = { exception ->
-                                        Toast.makeText(
-                                            context,
-                                            exception.message ?: "Error al registrar nuevo equipo",
-                                            Toast.LENGTH_LONG
-                                        ).show()
-
-                                    }
-                                )
-                            }
-
-                            navController.popBackStack()
+                        teamNameError = teamName.isBlank()
+                        if (!teamNameError) {
+                            createTeamViewModel.createTeam(
+                                teamName = teamName,
+                                category = category,
+                                selectedColor = selectedColor
+                            )
                         }
                     },
+                    enabled = !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 20.dp)
@@ -288,24 +232,31 @@ fun CreateTeamScreen(
                         contentColor = DarkBackground
                     )
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Save,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Guardar equipo",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(22.dp),
+                            color = DarkBackground,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Outlined.Save,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Guardar equipo",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
         }
     }
 }
 
-// --- COMPONENTE DE REUTILIZACIÓN DE CAMPOS ---
 @Composable
 fun CustomTeamTextField(
     label: String,

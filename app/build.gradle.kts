@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services")
+    //SUPABASE
+    kotlin("plugin.serialization") version "2.0.0"
 }
 
 android {
@@ -40,6 +42,7 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
@@ -59,6 +62,17 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
+
+    //SUPABASE
+    implementation(platform("io.github.jan-tennert.supabase:bom:3.0.0"))
+    // Módulo de base de datos (Postgrest) y Autenticación (opcional)
+    implementation("io.github.jan-tennert.supabase:postgrest-kt")
+
+    // Cliente HTTP (Ktor para Android)
+    implementation("io.ktor:ktor-client-android:3.0.0")
+
+    // Kotlinx Serialization JSON
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 
 
     testImplementation(libs.junit)

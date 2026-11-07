@@ -22,6 +22,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.sportproapp.data.remote.supabase.MensualidadRepository
+import com.example.sportproapp.data.session.UserSessionManager
 import com.example.sportproapp.presentation.auth.*
 
 // --- MODELOS DE DATOS ---
@@ -37,9 +39,23 @@ data class RecentActivity(
 fun AdminHomeScreen(
     navController: NavController,
     userName: String = "Carlos",
-    userTitle: String = "Entrenador • Club Tigres"
+    userTitle: String = "Administrador"
 ) {
-    // Usamos un Box principal para contener el fondo oscuro y ubicar el FAB libremente arriba
+    // Cuotas pendientes (incluye atrasadas): toda la academia para el ADM, su equipo para el DT
+    var mensualidadesPendientes by remember { mutableStateOf<Int?>(null) }
+    LaunchedEffect(Unit) {
+        val session = UserSessionManager.getCurrentUser()
+        mensualidadesPendientes = when (session?.role) {
+            "ADM" -> session.academiaId?.let {
+                MensualidadRepository.contarPendientes(academiaId = it).getOrNull()
+            }
+            "DT" -> MensualidadRepository.getEquipoDelEntrenador(session.uid).getOrNull()?.let {
+                MensualidadRepository.contarPendientes(equipoId = it).getOrNull()
+            }
+            else -> null
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -101,7 +117,7 @@ fun AdminHomeScreen(
             // --- 2. GRILLA DE TARJETAS 2x2 ---
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    // Fila 1: Entrenamiento & VS Leones FC
+                    // Fila 1: Entrenamiento & Desafío Amistoso
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -111,14 +127,17 @@ fun AdminHomeScreen(
                             icon = Icons.Outlined.CalendarToday,
                             tag = "ENTRENAMIENTO",
                             mainText = "Hoy, 18:00",
-                            subText = "Cancha Principal"
+                            subText = "Cancha Principal",
+                            onClick = { navController.navigate("entrenamiento") }
                         )
                         MetricCard(
                             modifier = Modifier.weight(1f),
                             icon = Icons.Outlined.EmojiEvents,
-                            tag = "VS. LEONES FC",
-                            mainText = "Sáb, 15:30",
-                            subText = "Liga Sub-15"
+                            tag = "DESAFÍO",
+                            mainText = "Retar Rival",
+                            subText = "Enviar a otra academia",
+                            isHighlighted = true,
+                            onClick = { navController.navigate("matches-create-challenge") }
                         )
                     }
 
@@ -133,14 +152,16 @@ fun AdminHomeScreen(
                             tag = "JUGADORES",
                             mainText = "24",
                             subText = "22 Activos hoy",
-                            showStatusDot = true
+                            showStatusDot = true,
+                            onClick = { navController.navigate("teams") }
                         )
                         MetricCard(
                             modifier = Modifier.weight(1f),
                             icon = Icons.Outlined.AttachMoney,
                             tag = "PENDIENTES",
-                            mainText = "3",
-                            subText = "Alertas de pago"
+                            mainText = mensualidadesPendientes?.toString() ?: "-",
+                            subText = "Alertas de pago",
+                            onClick = { navController.navigate("admin_payments") }
                         )
                     }
                 }
@@ -182,13 +203,12 @@ fun AdminHomeScreen(
                 ActivityCardItem(activity = activity)
             }
 
-            // Espacio adicional abajo para evitar que el contenido final quede tapado por la barra de navegación global
             item { Spacer(modifier = Modifier.height(90.dp)) }
         }
 
-        // --- 4. BOTÓN FLOTANTE (FAB) ---
+        // --- 4. BOTÓN FLOTANTE (FAB) PARA CREAR DESAFÍO ---
         FloatingActionButton(
-            onClick = { /* Acción para agregar evento / registrar */ },
+            onClick = { navController.navigate("matches-create-challenge") },
             containerColor = PrimaryLime,
             contentColor = DarkBackground,
             shape = CircleShape,
@@ -199,14 +219,14 @@ fun AdminHomeScreen(
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
-                contentDescription = "Agregar",
+                contentDescription = "Enviar Desafío",
                 modifier = Modifier.size(32.dp)
             )
         }
     }
 }
 
-// --- COMPONENTE: TARJETA DE MÉTRICAS (GRILLA 2x2) ---
+// --- COMPONENTE: TARJETA DE MÉTRICAS (GRILLA 2x2 INTERACTIVA) ---
 @Composable
 fun MetricCard(
     modifier: Modifier = Modifier,
@@ -214,14 +234,20 @@ fun MetricCard(
     tag: String,
     mainText: String,
     subText: String,
-    showStatusDot: Boolean = false
+    showStatusDot: Boolean = false,
+    isHighlighted: Boolean = false,
+    onClick: () -> Unit = {}
 ) {
+    val borderColor = if (isHighlighted) PrimaryLime else CardBorderColor
+    val cardBackground = if (isHighlighted) Color(0xFF142920) else DarkCardBackground
+
     Card(
         modifier = modifier
             .height(115.dp)
-            .border(1.dp, CardBorderColor, RoundedCornerShape(16.dp)),
+            .border(1.dp, borderColor, RoundedCornerShape(16.dp))
+            .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = DarkCardBackground)
+        colors = CardDefaults.cardColors(containerColor = cardBackground)
     ) {
         Column(
             modifier = Modifier
@@ -242,7 +268,7 @@ fun MetricCard(
                 )
                 Text(
                     text = tag,
-                    color = TextMuted,
+                    color = if (isHighlighted) PrimaryLime else TextMuted,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -267,7 +293,7 @@ fun MetricCard(
                     }
                     Text(
                         text = subText,
-                        color = if (showStatusDot) PrimaryLime else TextMuted,
+                        color = if (showStatusDot || isHighlighted) PrimaryLime else TextMuted,
                         fontSize = 11.sp
                     )
                 }

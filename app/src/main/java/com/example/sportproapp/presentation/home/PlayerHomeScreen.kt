@@ -1,5 +1,12 @@
 package com.example.sportproapp.presentation.home
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,11 +26,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.sportproapp.data.model.JugadorPerfil
+import com.example.sportproapp.data.remote.supabase.NotificacionRepository
+import com.example.sportproapp.data.remote.supabase.UsuarioRepository
 import com.example.sportproapp.presentation.auth.*
+import com.google.firebase.auth.FirebaseAuth
 
 // --- MODELOS DE DATOS PARA EL DASHBOARD ---
 data class QuickAction(
@@ -40,139 +54,473 @@ data class UpcomingEvent(
     val location: String
 )
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerHomeScreen(
     navController: NavController,
     userName: String = "Carlos Ortiz",
-    userRole: String = "JUG" // "DT", "JUG", "PAD", "ADM"
+    userRole: String? = "JUG"
 ) {
-    var selectedBottomTab by remember { mutableIntStateOf(0) }
+    var playerProfile by remember { mutableStateOf<JugadorPerfil?>(null) }
+    var isLoadingProfile by remember { mutableStateOf(true) }
+    val currentUser = FirebaseAuth.getInstance().currentUser
 
+    // Cargar perfil si el usuario actual es un jugador
+    LaunchedEffect(currentUser?.uid) {
+        val uid = currentUser?.uid
+        if (uid != null && userRole == "JUG") {
+            val result = UsuarioRepository.getPlayerProfile(uid)
+            playerProfile = result.getOrNull()
+        }
+        isLoadingProfile = false
+    }
 
+    // Avisos sin leer para la campana (2.05)
+    var notificacionesNoLeidas by remember { mutableIntStateOf(0) }
+    LaunchedEffect(Unit) {
+        currentUser?.uid?.let { uid ->
+            notificacionesNoLeidas = NotificacionRepository.contarNoLeidas(uid).getOrDefault(0)
+        }
+    }
+
+    // Calcular si el usuario es menor de edad
+    val esMenorEdad = remember(playerProfile?.fechaNacimiento) {
+        playerProfile?.fechaNacimiento?.let { fechaStr ->
+            try {
+                val fechaNac = java.time.LocalDate.parse(fechaStr)
+                val hoy = java.time.LocalDate.now()
+                java.time.Period.between(fechaNac, hoy).years < 18
+            } catch (e: Exception) {
+                false
+            }
+        } ?: false
+    }
+
+    // Condición de Bloqueo: Es menor y la vinculación está pendiente
+    val requiereVinculacionPadre = esMenorEdad && playerProfile?.estadoVinculacion == "PENDIENTE"
+
+    Scaffold(
+        containerColor = DarkBackground
+    ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding()
+                .padding(innerPadding)
                 .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            item { Spacer(modifier = Modifier.height(4.dp)) }
-
-            // --- 1. TARJETA DE RESUMEN PRINCIPAL (BANNER) ---
-            item {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .border(1.dp, CardBorderColor, RoundedCornerShape(20.dp)),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = DarkCardBackground)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(20.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Próximo Entrenamiento",
-                                color = PrimaryLime,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "Categoría Sub-17",
-                                color = Color.White,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Outlined.Schedule, contentDescription = null, tint = TextMuted, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Hoy, 4:30 PM", color = TextLight, fontSize = 13.sp)
-                            }
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Outlined.Place, contentDescription = null, tint = TextMuted, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Cancha Principal N° 2", color = TextLight, fontSize = 13.sp)
-                            }
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .size(50.dp)
-                                .background(PrimaryLime, shape = CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.SportsSoccer,
-                                contentDescription = null,
-                                tint = DarkBackground,
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
-                    }
-                }
-            }
-
-            // --- 2. ACCIONES RÁPIDAS (SEGÚN EL ROL) ---
-            item {
-                Text(
-                    text = "Acciones rápidas",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-
-                val actions = getRoleQuickActions(userRole)
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(actions) { action ->
-                        QuickActionItem(action = action) {
-                            navController.navigate(action.route)
-                        }
-                    }
-                }
-            }
-
-            // --- 3. PRÓXIMOS EVENTOS Y CONVOCATORIAS ---
+            // --- 0. CABECERA SUPERIOR (SIEMPRE VISIBLE) ---
             item {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp, bottom = 4.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "Agenda y Convocatorias",
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    TextButton(onClick = { /* Ver todo */ }) {
-                        Text("Ver todo", color = PrimaryLime, fontSize = 13.sp)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(InputBackgroundColor)
+                                .border(1.5.dp, PrimaryLime, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Person,
+                                contentDescription = "Perfil",
+                                tint = TextLight,
+                                modifier = Modifier.size(26.dp)
+                            )
+                        }
+
+                        Column {
+                            Text(
+                                text = "¡Hola, $userName! 👋",
+                                color = Color.White,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Surface(
+                                color = Color(0xFF162D24),
+                                shape = RoundedCornerShape(8.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, CardBorderColor)
+                            ) {
+                                Text(
+                                    text = getRoleBadgeText(userRole),
+                                    color = PrimaryLime,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    IconButton(
+                        onClick = { navController.navigate("notificaciones") },
+                        modifier = Modifier
+                            .size(42.dp)
+                            .background(DarkCardBackground, CircleShape)
+                            .border(1.dp, CardBorderColor, CircleShape)
+                    ) {
+                        BadgedBox(
+                            badge = {
+                                if (notificacionesNoLeidas > 0) {
+                                    Badge(containerColor = PrimaryLime, contentColor = DarkBackground) {
+                                        Text(notificacionesNoLeidas.toString())
+                                    }
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Notifications,
+                                contentDescription = "Notificaciones",
+                                tint = TextLight,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
                     }
                 }
             }
 
-            val mockEvents = listOf(
-                UpcomingEvent("Partido vs Academia Central", "Torneo Local", "10:00 AM", "Sáb, 12 Oct", "Estadio Municipal"),
-                UpcomingEvent("Entrenamiento Táctico", "Sub-17", "04:30 PM", "Mar, 15 Oct", "Cancha N° 1"),
-                UpcomingEvent("Reunión de Padres / Apoderados", "Institucional", "07:00 PM", "Jue, 17 Oct", "Aula Magna")
-            )
+            // =========================================================================
+            // LÓGICA DE BLOQUEO: SI REQUIERE VINCULACIÓN, SOLO SE MUESTRA EL CÓDIGO
+            // =========================================================================
+            if (requiereVinculacionPadre) {
 
-            items(mockEvents) { event ->
-                EventCard(event = event)
+                // 1. TARJETA DE CÓDIGO DE VINCULACIÓN
+                item {
+                    PendingParentLinkCard(
+                        codigoVinculacion = playerProfile?.codigoVinculacion ?: "Cargando...",
+                        onCardClick = { navController.navigate("link_parent_code") }
+                    )
+                }
+
+                // 2. BANNER DE ACCESO BLOQUEADO / RESTRINGIDO
+                item {
+                    LockedAccountCard()
+                }
+
+            } else {
+
+                // =========================================================================
+                // FLUJO NORMAL (CUANDO YA ESTÁ VINCULADO O ES MAYOR DE EDAD)
+                // =========================================================================
+
+                // --- 1. BANNER DE PRÓXIMO ENTRENAMIENTO ---
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(1.dp, CardBorderColor, RoundedCornerShape(20.dp)),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = DarkCardBackground)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Próximo Entrenamiento",
+                                    color = PrimaryLime,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Categoría Sub-17",
+                                    color = Color.White,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Outlined.Schedule, contentDescription = null, tint = TextMuted, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Hoy, 4:30 PM", color = TextLight, fontSize = 13.sp)
+                                }
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Outlined.Place, contentDescription = null, tint = TextMuted, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Cancha Principal N° 2", color = TextLight, fontSize = 13.sp)
+                                }
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .size(50.dp)
+                                    .background(PrimaryLime, shape = CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.SportsSoccer,
+                                    contentDescription = null,
+                                    tint = DarkBackground,
+                                    modifier = Modifier.size(28.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // --- 2. ACCIONES RÁPIDAS ---
+                item {
+                    Column {
+                        Text(
+                            text = "Acciones rápidas",
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        val actions = getRoleQuickActions(userRole)
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(actions) { action ->
+                                QuickActionItem(action = action) {
+                                    navController.navigate(action.route)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // --- 3. PRÓXIMOS EVENTOS Y CONVOCATORIAS ---
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Agenda y Convocatorias",
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        TextButton(onClick = { /* Ver todo */ }) {
+                            Text("Ver todo", color = PrimaryLime, fontSize = 13.sp)
+                        }
+                    }
+                }
+
+                val mockEvents = listOf(
+                    UpcomingEvent("Partido vs Academia Central", "Torneo Local", "10:00 AM", "Sáb, 12 Oct", "Estadio Municipal"),
+                    UpcomingEvent("Entrenamiento Táctico", "Sub-17", "04:30 PM", "Mar, 15 Oct", "Cancha N° 1"),
+                    UpcomingEvent("Reunión de Padres / Apoderados", "Institucional", "07:00 PM", "Jue, 17 Oct", "Aula Magna")
+                )
+
+                items(mockEvents) { event ->
+                    EventCard(event = event)
+                }
             }
 
-            item { Spacer(modifier = Modifier.height(16.dp)) }
+            item { Spacer(modifier = Modifier.height(20.dp)) }
         }
+    }
+}
 
+// --- COMPONENTE: TARJETA DE CUENTA BLOQUEADA / ESPERANDO VINCULACIÓN ---
+@Composable
+fun LockedAccountCard() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, Color(0xFFFFB74D), RoundedCornerShape(20.dp)),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = DarkCardBackground)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .background(Color(0xFF332308), CircleShape)
+                    .border(1.dp, Color(0xFFFFB74D), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Lock,
+                    contentDescription = "Bloqueado",
+                    tint = Color(0xFFFFB74D),
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+
+            Text(
+                text = "Acceso Restringido",
+                color = Color.White,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = "Tu cuenta está pendiente de autorización por parte de tu apoderado. " +
+                        "Comparte tu código de vinculación para activar tus entrenamientos, partidos y estadísticas.",
+                color = TextMuted,
+                fontSize = 13.sp,
+                textAlign = TextAlign.Center,
+                lineHeight = 18.sp
+            )
+        }
+    }
+}
+
+// --- COMPONENTE: TARJETA DE VINCULACIÓN DE APODERADO PENDIENTE ---
+@Composable
+fun PendingParentLinkCard(
+    codigoVinculacion: String,
+    onCardClick: (() -> Unit)? = null
+) {
+    val context = LocalContext.current
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(1.5.dp, PrimaryLime, RoundedCornerShape(20.dp))
+            .then(if (onCardClick != null) Modifier.clickable { onCardClick() } else Modifier),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = DarkCardBackground)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(Color(0xFF162D24), RoundedCornerShape(12.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.FamilyRestroom,
+                            contentDescription = null,
+                            tint = PrimaryLime,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+
+                    Column {
+                        Text(
+                            text = "Vincular con tu Apoderado",
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Muestra este código a tu apoderado",
+                            color = TextMuted,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    tint = PrimaryLime,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+
+            // Caja del Código
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(InputBackgroundColor, RoundedCornerShape(12.dp))
+                    .border(1.dp, CardBorderColor, RoundedCornerShape(12.dp))
+                    .padding(vertical = 10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = codigoVinculacion,
+                    color = PrimaryLime,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontFamily = FontFamily.Monospace,
+                    letterSpacing = 3.sp
+                )
+            }
+
+            // Botones Copiar / Compartir
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                OutlinedButton(
+                    onClick = {
+                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        val clip = ClipData.newPlainText("Código SportPro", codigoVinculacion)
+                        clipboard.setPrimaryClip(clip)
+                        Toast.makeText(context, "Código copiado", Toast.LENGTH_SHORT).show()
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(40.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, CardBorderColor),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = TextLight)
+                ) {
+                    Icon(Icons.Outlined.ContentCopy, contentDescription = null, modifier = Modifier.size(15.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Copiar", fontSize = 12.sp)
+                }
+
+                OutlinedButton(
+                    onClick = {
+                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(
+                                Intent.EXTRA_TEXT,
+                                "¡Hola! Mi código de vinculación para SportPro es: $codigoVinculacion"
+                            )
+                        }
+                        context.startActivity(Intent.createChooser(shareIntent, "Compartir mediante"))
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(40.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryLime),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryLime)
+                ) {
+                    Icon(Icons.Outlined.Share, contentDescription = null, modifier = Modifier.size(15.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Compartir", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    }
 }
 
 // --- COMPONENTE: ITEM DE ACCIÓN RÁPIDA ---
@@ -254,19 +602,18 @@ fun EventCard(event: UpcomingEvent) {
     }
 }
 
-// --- FUNCIONES AUXILIARES PARA ADAPTAR EL CONTENIDO SEGÚN ROL ---
-fun getRoleBadgeText(role: String): String {
+// --- FUNCIONES AUXILIARES DE ROL ---
+fun getRoleBadgeText(role: String?): String {
     return when (role) {
-        "DT" -> "Director Técnico / Entrenador"
+        "DT" -> "Director Técnico"
         "JUG" -> "Jugador Fichado"
         "PAD" -> "Apoderado / Tutor"
-        "ADM" -> "Administrador de Academia"
+        "ADM" -> "Administrador"
         else -> "Usuario"
     }
 }
 
-// --- 1. ACCIONES RÁPIDAS (Solo Módulos de Entrenamientos y Partidos) ---
-fun getRoleQuickActions(role: String): List<QuickAction> {
+fun getRoleQuickActions(role: String?): List<QuickAction> {
     return when (role) {
         "DT" -> listOf(
             QuickAction("Tomar Asistencia", Icons.Outlined.Checklist, "attendance"),
@@ -280,7 +627,9 @@ fun getRoleQuickActions(role: String): List<QuickAction> {
             QuickAction("Cobranzas", Icons.Outlined.PointOfSale, "admin_payments"),
             QuickAction("Gestión Usuarios", Icons.Outlined.AdminPanelSettings, "manage_users")
         )
-        else -> listOf( // JUG (Jugador): Módulos solicitados
+        else -> listOf( // JUG (Jugador)
+            QuickAction("Mensualidades", Icons.Outlined.Payments, "payments"),
+            QuickAction("Código Padre", Icons.Outlined.FamilyRestroom, "link_parent_code"),
             QuickAction("Entrenamientos", Icons.Outlined.FitnessCenter, "trainings_screen"),
             QuickAction("Partidos", Icons.Outlined.SportsSoccer, "matches_screen")
         )
