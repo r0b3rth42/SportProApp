@@ -26,6 +26,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.sportproapp.data.remote.supabase.EntrenamientoRepository
+import com.example.sportproapp.data.session.UserSessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,6 +35,19 @@ import kotlinx.coroutines.launch
 class EntrenamientosPorEquipoViewModel : ViewModel() {
     private val _uiState = MutableStateFlow<EntrenamientosUiState>(EntrenamientosUiState.Loading)
     val uiState: StateFlow<EntrenamientosUiState> = _uiState.asStateFlow()
+    private val _isAdmin = MutableStateFlow<Boolean>(false)
+    val isAdmin = _isAdmin.asStateFlow()
+
+    init {
+        verificarRolUsuario()
+    }
+
+    private fun verificarRolUsuario() {
+        viewModelScope.launch {
+            val rol = UserSessionManager.getCurrentUser()?.role
+            _isAdmin.value = ("ADM" == rol)
+        }
+    }
 
     fun cargarEntrenamientos(equipoId: String) {
         _uiState.value = EntrenamientosUiState.Loading
@@ -58,6 +72,7 @@ fun EntrenamientosPorEquipoScreen(
     viewModel: EntrenamientosPorEquipoViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val isAdmin by viewModel.isAdmin.collectAsState()
 
     LaunchedEffect(equipoId) {
         viewModel.cargarEntrenamientos(equipoId)
@@ -82,19 +97,22 @@ fun EntrenamientosPorEquipoScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { onAddClick(equipoId) },
-                containerColor = PrimaryGreen,
-                contentColor = Color.Black,
-                shape = CircleShape,
-                modifier = Modifier.size(60.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Agregar Entrenamiento",
-                    modifier = Modifier.size(32.dp)
-                )
+            if(isAdmin) {
+                FloatingActionButton(
+                    onClick = { onAddClick(equipoId) },
+                    containerColor = PrimaryGreen,
+                    contentColor = Color.Black,
+                    shape = CircleShape,
+                    modifier = Modifier.size(60.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Agregar Entrenamiento",
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
             }
+
         }
     ) { innerPadding ->
         LazyColumn(

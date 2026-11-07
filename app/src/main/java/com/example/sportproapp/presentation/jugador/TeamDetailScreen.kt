@@ -39,6 +39,7 @@ fun TeamDetailScreen(
 
     var showAddPlayerDialog by remember { mutableStateOf(false) }
     val playersUiState by viewModel.playersUiState.collectAsState()
+    val isAdmin by viewModel.isAdmin.collectAsState()
 
     LaunchedEffect(teamId) {
         viewModel.fetchTeamPlayers(teamId)
@@ -62,7 +63,8 @@ fun TeamDetailScreen(
                 playerCount = playerCount,
                 season = season,
                 onBackClick = { navController.popBackStack() },
-                onEditClick = {}
+                onEditClick = {},
+                isAdmin = isAdmin
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -121,25 +123,28 @@ fun TeamDetailScreen(
             }
         }
 
-        FloatingActionButton(
-            onClick = {
-                viewModel.fetchUnassignedPlayers()
-                showAddPlayerDialog = true
-            },
-            containerColor = PrimaryLime,
-            contentColor = DarkBackground,
-            shape = CircleShape,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = 20.dp)
-                .size(60.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Añadir jugador existente",
-                modifier = Modifier.size(32.dp)
-            )
+        if(isAdmin) {
+            FloatingActionButton(
+                onClick = {
+                    viewModel.fetchUnassignedPlayers()
+                    showAddPlayerDialog = true
+                },
+                containerColor = PrimaryLime,
+                contentColor = DarkBackground,
+                shape = CircleShape,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 20.dp, bottom = 20.dp)
+                    .size(60.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Añadir jugador existente",
+                    modifier = Modifier.size(32.dp)
+                )
+            }
         }
+
 
         if (showAddPlayerDialog) {
             SelectUnassignedPlayerDialog(
@@ -332,7 +337,8 @@ fun TeamHeaderCard(
     playerCount: Int,
     season: String,
     onBackClick: () -> Unit,
-    onEditClick: () -> Unit
+    onEditClick: () -> Unit,
+    isAdmin: Boolean
 ) {
     Card(
         modifier = Modifier
@@ -365,19 +371,21 @@ fun TeamHeaderCard(
                         modifier = Modifier.size(20.dp)
                     )
                 }
-
-                Button(
-                    onClick = onEditClick,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = PrimaryLime,
-                        contentColor = DarkBackground
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
-                    modifier = Modifier.height(32.dp)
-                ) {
-                    Text("Editar", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                if(isAdmin) {
+                    Button(
+                        onClick = onEditClick,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = PrimaryLime,
+                            contentColor = DarkBackground
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
+                        modifier = Modifier.height(32.dp)
+                    ) {
+                        Text("Editar", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    }
                 }
+
             }
 
             Spacer(modifier = Modifier.height(16.dp))
