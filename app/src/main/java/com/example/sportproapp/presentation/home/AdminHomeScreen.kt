@@ -22,6 +22,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.sportproapp.data.remote.supabase.MensualidadRepository
+import com.example.sportproapp.data.session.UserSessionManager
 import com.example.sportproapp.presentation.auth.*
 
 // --- MODELOS DE DATOS ---
@@ -39,6 +41,21 @@ fun AdminHomeScreen(
     userName: String = "Carlos",
     userTitle: String = "Administrador"
 ) {
+    // Cuotas pendientes (incluye atrasadas): toda la academia para el ADM, su equipo para el DT
+    var mensualidadesPendientes by remember { mutableStateOf<Int?>(null) }
+    LaunchedEffect(Unit) {
+        val session = UserSessionManager.getCurrentUser()
+        mensualidadesPendientes = when (session?.role) {
+            "ADM" -> session.academiaId?.let {
+                MensualidadRepository.contarPendientes(academiaId = it).getOrNull()
+            }
+            "DT" -> MensualidadRepository.getEquipoDelEntrenador(session.uid).getOrNull()?.let {
+                MensualidadRepository.contarPendientes(equipoId = it).getOrNull()
+            }
+            else -> null
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -142,8 +159,9 @@ fun AdminHomeScreen(
                             modifier = Modifier.weight(1f),
                             icon = Icons.Outlined.AttachMoney,
                             tag = "PENDIENTES",
-                            mainText = "3",
-                            subText = "Alertas de pago"
+                            mainText = mensualidadesPendientes?.toString() ?: "-",
+                            subText = "Alertas de pago",
+                            onClick = { navController.navigate("admin_payments") }
                         )
                     }
                 }
