@@ -101,7 +101,8 @@ fun AdminHomeScreen(
                             .size(52.dp)
                             .clip(CircleShape)
                             .background(DarkCardBackground)
-                            .border(2.dp, PrimaryLime, CircleShape),
+                            .border(2.dp, PrimaryLime, CircleShape)
+                            .clickable { navController.navigate("mi-cuenta") },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(

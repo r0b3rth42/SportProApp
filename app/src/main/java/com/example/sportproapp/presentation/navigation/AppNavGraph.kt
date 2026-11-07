@@ -25,6 +25,7 @@ import com.example.sportproapp.presentation.auth.PlayerProfileCompletionScreen
 import com.example.sportproapp.presentation.auth.RegisterScreen
 import com.example.sportproapp.presentation.auth.RoleSelectionScreen
 import com.example.sportproapp.presentation.community.AprobacionDtScreen
+import com.example.sportproapp.presentation.cuenta.MiCuentaScreen
 import com.example.sportproapp.presentation.community.DetallePostScreen
 import com.example.sportproapp.presentation.community.MuroComunidadScreen
 import com.example.sportproapp.presentation.desafio.EnviarDesafioScreen
@@ -263,6 +264,9 @@ fun AppNavGraph(
 
             // --- NOTIFICACIONES ---
             composable("notificaciones") { NotificacionesScreen(navController = navController) }
+
+            // --- MI CUENTA Y CERRAR SESIÓN ---
+            composable("mi-cuenta") { MiCuentaScreen(navController = navController) }
 
             // --- COMUNIDAD Y MURO DE PUBLICACIONES ---
             composable("community") {
