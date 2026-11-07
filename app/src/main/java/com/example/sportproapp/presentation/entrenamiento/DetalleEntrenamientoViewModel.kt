@@ -26,6 +26,8 @@ class DetalleEntrenamientoViewModel(
 
     private val _uiState = MutableStateFlow<DetalleEntrenamientoUiState>(DetalleEntrenamientoUiState.Loading)
     val uiState: StateFlow<DetalleEntrenamientoUiState> = _uiState.asStateFlow()
+    private val _isAdmin = MutableStateFlow(false)
+    val isAdmin = _isAdmin.asStateFlow()
 
     // Lista de ejercicios previamente creados en la academia
     private val _ejerciciosAcademia = MutableStateFlow<List<Ejercicio>>(emptyList())
@@ -33,6 +35,17 @@ class DetalleEntrenamientoViewModel(
 
     private val _isSaving = MutableStateFlow(false)
     val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
+
+    init {
+        validarRolAdmin()
+    }
+
+    private fun validarRolAdmin(){
+        viewModelScope.launch {
+            val rol = UserSessionManager.getCurrentUser()?.role
+            _isAdmin.value = ("ADM" == rol)
+        }
+    }
 
     fun cargarDetalle(entrenamientoId: String) {
         _uiState.value = DetalleEntrenamientoUiState.Loading

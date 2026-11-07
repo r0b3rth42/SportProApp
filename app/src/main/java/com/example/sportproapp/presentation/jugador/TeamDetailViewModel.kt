@@ -1,9 +1,11 @@
 package com.example.sportproapp.presentation.jugador
 
+import android.os.UserManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sportproapp.data.model.JugadorConUsuario
 import com.example.sportproapp.data.remote.supabase.UsuarioRepository
+import com.example.sportproapp.data.session.UserSessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,6 +34,20 @@ class TeamDetailViewModel(
 
     private val _unassignedUiState = MutableStateFlow<UnassignedPlayersUiState>(UnassignedPlayersUiState.Loading)
     val unassignedUiState: StateFlow<UnassignedPlayersUiState> = _unassignedUiState.asStateFlow()
+
+    private val _isAdmin = MutableStateFlow<Boolean>(false)
+    val isAdmin = _isAdmin.asStateFlow()
+
+    init {
+        verificarRolUsuario()
+    }
+
+    private fun verificarRolUsuario() {
+        viewModelScope.launch {
+            val rol = UserSessionManager.getCurrentUser()?.role
+            _isAdmin.value = ("ADM" == rol)
+        }
+    }
 
     // Cargar jugadores que pertenecen a este equipo (puedes crear el método en tu repo equivalente a getMisRepresentados pero por equipo_id)
     fun fetchTeamPlayers(teamId: String) {

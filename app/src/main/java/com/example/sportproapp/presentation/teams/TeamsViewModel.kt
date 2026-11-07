@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sportproapp.data.remote.supabase.EquipoRepository
+import com.example.sportproapp.data.session.UserSessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,28 +27,37 @@ sealed interface TeamsUiState {
 }
 
 class TeamsViewModel(
-    // Inyectamos el repositorio (o usamos el objeto si es un singleton/object)
     private val repository: EquipoRepository = EquipoRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<TeamsUiState>(TeamsUiState.Loading)
     val uiState: StateFlow<TeamsUiState> = _uiState.asStateFlow()
 
+    // Estado reactivo para determinar si el usuario actual es administrador
+    private val _isAdmin = MutableStateFlow(false)
+    val isAdmin: StateFlow<Boolean> = _isAdmin.asStateFlow()
+
     init {
+        verificarRolUsuario()
         fetchTeams()
+    }
+
+    private fun verificarRolUsuario() {
+        viewModelScope.launch {
+            val rol = UserSessionManager.getCurrentUser()?.role
+            _isAdmin.value = (rol == "ADM")
+        }
     }
 
     fun fetchTeams() {
         viewModelScope.launch {
             _uiState.value = TeamsUiState.Loading
 
-            // Usamos el repositorio que ya creaste, el cual maneja el Result
             val result = repository.getEquipos()
 
             if (result.isSuccess) {
                 val teamModels = result.getOrNull() ?: emptyList()
 
-                // Mapeamos los datos de Supabase al modelo visual de Compose
                 val teamsList = teamModels.map { teamModel ->
                     val stripeColor = try {
                         Color(teamModel.stripeColorHex.toColorInt())

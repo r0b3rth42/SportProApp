@@ -33,6 +33,7 @@ fun TeamsListScreen(
 
     // Recolectar el estado reactivo del ViewModel
     val uiState by viewModel.uiState.collectAsState()
+    val isAdmin by viewModel.isAdmin.collectAsState()
 
     Box(
         modifier = Modifier
@@ -166,24 +167,27 @@ fun TeamsListScreen(
         }
 
         // --- 4. BOTÓN FLOTANTE (FAB) ---
-        FloatingActionButton(
-            onClick = {
-                navController.navigate("teams-create")
-            },
-            containerColor = PrimaryLime,
-            contentColor = DarkBackground,
-            shape = CircleShape,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = 20.dp)
-                .size(60.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Agregar Equipo",
-                modifier = Modifier.size(32.dp)
-            )
+        if(isAdmin) {
+            FloatingActionButton(
+                onClick = {
+                    navController.navigate("teams-create")
+                },
+                containerColor = PrimaryLime,
+                contentColor = DarkBackground,
+                shape = CircleShape,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 20.dp, bottom = 20.dp)
+                    .size(60.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Agregar Equipo",
+                    modifier = Modifier.size(32.dp)
+                )
+            }
         }
+
     }
 }
 

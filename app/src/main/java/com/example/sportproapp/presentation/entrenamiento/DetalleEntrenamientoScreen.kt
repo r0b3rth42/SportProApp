@@ -41,6 +41,7 @@ fun DetalleEntrenamientoScreen(
     val uiState by viewModel.uiState.collectAsState()
     val ejerciciosAcademia by viewModel.ejerciciosAcademia.collectAsState()
     val isSaving by viewModel.isSaving.collectAsState()
+    val isAdmin by viewModel.isAdmin.collectAsState()
 
     // Control de visibilidad del BottomSheet
     var bloqueSeleccionado by remember { mutableStateOf<BloqueEntrenamiento?>(null) }
@@ -176,7 +177,8 @@ fun DetalleEntrenamientoScreen(
                                 onAgregarClick = {
                                     bloqueSeleccionado = bloque
                                     showBottomSheet = true
-                                }
+                                },
+                                isAdmin = isAdmin
                             )
                             Spacer(modifier = Modifier.height(10.dp))
                         }
@@ -199,7 +201,8 @@ fun DetalleEntrenamientoScreen(
                                         ejercicio.id?.let { ejercicioId ->
                                             viewModel.quitarEjercicio(entrenamientoId, ejercicioId)
                                         }
-                                    }
+                                    },
+                                    isAdmin = isAdmin
                                 )
                                 Spacer(modifier = Modifier.height(10.dp))
                             }
@@ -434,7 +437,8 @@ fun AgregarEjercicioSheetContent(
 @Composable
 fun SeccionHeader(
     titulo: String,
-    onAgregarClick: () -> Unit
+    onAgregarClick: () -> Unit,
+    isAdmin: Boolean
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -448,30 +452,34 @@ fun SeccionHeader(
             fontWeight = FontWeight.Bold
         )
 
-        OutlinedButton(
-            onClick = onAgregarClick,
-            shape = RoundedCornerShape(8.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, CardBorderColor),
-            colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = CardBackgroundColor,
-                contentColor = TextGray
-            ),
-            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
-            modifier = Modifier.height(32.dp)
-        ) {
-            Text(
-                text = "+ Agregar",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
-            )
+        if(isAdmin) {
+            OutlinedButton(
+                onClick = onAgregarClick,
+                shape = RoundedCornerShape(8.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, CardBorderColor),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = CardBackgroundColor,
+                    contentColor = TextGray
+                ),
+                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                modifier = Modifier.height(32.dp)
+            ) {
+                Text(
+                    text = "+ Agregar",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
+
     }
 }
 
 @Composable
 fun TarjetaEjercicioItem(
     ejercicio: Ejercicio,
-    onEliminarClick: () -> Unit = {}
+    onEliminarClick: () -> Unit = {},
+    isAdmin: Boolean
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = CardBackgroundColor),
@@ -527,17 +535,20 @@ fun TarjetaEjercicioItem(
             Spacer(modifier = Modifier.width(8.dp))
 
             // Botón de eliminar ejercicio de esta sesión
-            IconButton(
-                onClick = onEliminarClick,
-                modifier = Modifier.size(28.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Quitar ejercicio",
-                    tint = Color(0xFFFF5555),
-                    modifier = Modifier.size(18.dp)
-                )
+            if(isAdmin) {
+                IconButton(
+                    onClick = onEliminarClick,
+                    modifier = Modifier.size(28.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Quitar ejercicio",
+                        tint = Color(0xFFFF5555),
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
+
         }
     }
 }
