@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.sportproapp.data.model.Equipo
 import com.example.sportproapp.data.remote.supabase.EquipoRepository
 import com.example.sportproapp.data.remote.supabase.UsuarioRepository
+import com.example.sportproapp.data.session.UserSessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,11 +41,13 @@ class CreateTeamViewModel(
 
         viewModelScope.launch {
             val hexColor = String.format("#%06X", (0xFFFFFF and selectedColor.toArgb()))
+            val userSession = UserSessionManager.getCurrentUser();
 
             val nuevoEquipo = Equipo(
                 nombre = teamName.trim(),
                 categoria = category.trim(),
-                stripeColorHex = hexColor
+                stripeColorHex = hexColor,
+                academiaId = userSession?.academiaId
             )
 
             val result = repository.saveEquipo(nuevoEquipo)

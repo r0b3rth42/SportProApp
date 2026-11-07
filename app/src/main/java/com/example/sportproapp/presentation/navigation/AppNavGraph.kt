@@ -27,6 +27,7 @@ import com.example.sportproapp.presentation.auth.RoleSelectionScreen
 import com.example.sportproapp.presentation.community.AprobacionDtScreen
 import com.example.sportproapp.presentation.community.DetallePostScreen
 import com.example.sportproapp.presentation.community.MuroComunidadScreen
+import com.example.sportproapp.presentation.desafio.EnviarDesafioScreen
 import com.example.sportproapp.presentation.entrenamiento.AsistenciaScreen
 import com.example.sportproapp.presentation.entrenamiento.CrearEntrenamientoScreen
 import com.example.sportproapp.presentation.entrenamiento.DetalleEntrenamientoScreen
@@ -38,6 +39,7 @@ import com.example.sportproapp.presentation.home.ParentHomeScreen
 import com.example.sportproapp.presentation.home.PlayerHomeScreen
 import com.example.sportproapp.presentation.jugador.PlayerProfileScreen
 import com.example.sportproapp.presentation.jugador.TeamDetailScreen
+import com.example.sportproapp.presentation.partidos.MatchesScreen
 import com.example.sportproapp.presentation.teams.CreateTeamScreen
 import com.example.sportproapp.presentation.teams.TeamsListScreen
 
@@ -131,15 +133,12 @@ fun AppNavGraph(
                 )
             }
 
-
-
             composable("entrenamiento-create") {
                 CrearEntrenamientoScreen(
                     navController = navController,
                     onCrearClick = { navController.popBackStack() }
                 )
             }
-
              */
 
             composable("entrenamiento") {
@@ -220,6 +219,10 @@ fun AppNavGraph(
             composable("register-parent-profile") { ParentProfileCompletionScreen(navController) }
             composable("link_parent_code") { LinkParentCodeScreen(navController = navController) }
             composable("register-admin-profile") { AdminProfileCompletionScreen(navController = navController) }
+
+            // --- PARTIDOS Y DESAFÍOS ---
+            composable("matches") { MatchesScreen(navController = navController) }
+            composable("matches-create-challenge") { EnviarDesafioScreen(navController = navController) }
 
             // --- COMUNIDAD Y MURO DE PUBLICACIONES ---
             composable("community") {
