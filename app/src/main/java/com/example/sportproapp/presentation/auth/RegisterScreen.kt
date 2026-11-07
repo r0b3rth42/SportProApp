@@ -353,7 +353,7 @@ fun RegisterScreen(
                                     isRegistering = false
                                     result.fold(
                                         onSuccess = {
-                                            navController.navigate("select-role")
+                                            navController.navigate("selected_role")
                                         },
                                         onFailure = { exception ->
                                             Toast.makeText(

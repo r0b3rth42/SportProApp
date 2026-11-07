@@ -29,5 +29,20 @@ object EquipoRepository {
         }
     }
 
+    suspend fun getEquiposByAcademy(academiaId: String): Result<List<Equipo>> {
+        return try {
+            val lista = supabase.from("equipos")
+                .select{
+                    filter {
+                        eq("academia_id", academiaId)
+                    }
+                }
+                .decodeList<Equipo>()
+            Result.success(lista)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 
 }

@@ -53,7 +53,9 @@ class TeamsViewModel(
         viewModelScope.launch {
             _uiState.value = TeamsUiState.Loading
 
-            val result = repository.getEquipos()
+            val user = UserSessionManager.getCurrentUser();
+
+            val result = repository.getEquiposByAcademy(user?.academiaId.toString())
 
             if (result.isSuccess) {
                 val teamModels = result.getOrNull() ?: emptyList()
