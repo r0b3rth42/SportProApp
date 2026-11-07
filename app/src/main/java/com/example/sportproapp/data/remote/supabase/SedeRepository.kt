@@ -20,4 +20,15 @@ object SedeRepository {
             Result.failure(e)
         }
     }
+
+    suspend fun getSedes(): Result<List<Sede>> {
+        return try {
+            val sedes = supabase.from("sedes")
+                .select()
+                .decodeList<Sede>()
+            Result.success(sedes)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

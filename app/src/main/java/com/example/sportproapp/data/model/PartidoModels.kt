@@ -17,6 +17,28 @@ enum class EstadoDesafio {
     @SerialName("CANCELADO") CANCELADO
 }
 
+// Tabla campeonato
+@Serializable
+data class Campeonato(
+    @SerialName("id") val id: Long? = null,
+    @SerialName("nombre") val nombre: String = "",
+    @SerialName("temporada") val temporada: String = "",
+    @SerialName("fecha_inicio") val fechaInicio: String = "",
+    @SerialName("fecha_fin") val fechaFin: String = "",
+    @SerialName("estado") val estado: String = "PROGRAMADO"
+)
+
+// Tabla fase_campeonato
+@Serializable
+data class FaseCampeonato(
+    @SerialName("id") val id: Long? = null,
+    @SerialName("campeonato_id") val campeonatoId: Long = 0,
+    @SerialName("nombre") val nombre: String = "",
+    @SerialName("tipo_fase") val tipoFase: String = "LIGA",
+    @SerialName("orden") val orden: Int = 1,
+    @SerialName("estado") val estado: String = "PENDIENTE"
+)
+
 // Tabla desafio_partido
 @Serializable
 data class DesafioPartido(
@@ -62,4 +84,26 @@ data class PartidoDetalleDto(
     @SerialName("hora") val hora: String,
     @SerialName("estado") val estado: String,
     @SerialName("sede_id") val sedeId: String
+)
+
+@Serializable
+data class PartidoConDetalles(
+    @SerialName("id") val id: Long = 0,
+    @SerialName("tipo_partido") val tipoPartido: String = "AMISTOSO",
+    @SerialName("fecha") val fecha: String = "",
+    @SerialName("hora") val hora: String = "",
+    @SerialName("estado") val estado: String = "PROGRAMADO",
+    @SerialName("sede_id") val sedeId: String = "",
+    @SerialName("sede_nombre") val sedeNombre: String = "Sede Principal",
+    @SerialName("sede_direccion") val sedeDireccion: String = "",
+    @SerialName("equipo_local_id") val equipoLocalId: String = "",
+    @SerialName("equipo_local_nombre") val equipoLocalNombre: String = "Equipo Local",
+    @SerialName("equipo_local_categoria") val equipoLocalCategoria: String = "",
+    @SerialName("goles_local") val golesLocal: Int? = null,
+    @SerialName("equipo_visitante_id") val equipoVisitanteId: String = "",
+    @SerialName("equipo_visitante_nombre") val equipoVisitanteNombre: String = "Equipo Visitante",
+    @SerialName("equipo_visitante_categoria") val equipoVisitanteCategoria: String = "",
+    @SerialName("goles_visitante") val golesVisitante: Int? = null,
+    @SerialName("desafio_id") val desafioId: Long? = null,
+    @SerialName("mensaje_desafio") val mensajeDesafio: String? = null
 )
