@@ -24,6 +24,9 @@ import com.example.sportproapp.presentation.auth.ParentProfileCompletionScreen
 import com.example.sportproapp.presentation.auth.PlayerProfileCompletionScreen
 import com.example.sportproapp.presentation.auth.RegisterScreen
 import com.example.sportproapp.presentation.auth.RoleSelectionScreen
+import com.example.sportproapp.presentation.community.AprobacionDtScreen
+import com.example.sportproapp.presentation.community.DetallePostScreen
+import com.example.sportproapp.presentation.community.MuroComunidadScreen
 import com.example.sportproapp.presentation.entrenamiento.AsistenciaScreen
 import com.example.sportproapp.presentation.entrenamiento.CrearEntrenamientoScreen
 import com.example.sportproapp.presentation.entrenamiento.DetalleEntrenamientoScreen
@@ -217,6 +220,37 @@ fun AppNavGraph(
             composable("register-parent-profile") { ParentProfileCompletionScreen(navController) }
             composable("link_parent_code") { LinkParentCodeScreen(navController = navController) }
             composable("register-admin-profile") { AdminProfileCompletionScreen(navController = navController) }
+
+            // --- COMUNIDAD Y MURO DE PUBLICACIONES ---
+            composable("community") {
+                MuroComunidadScreen(navController = navController)
+            }
+
+            composable(
+                route = "aprobacion-dt/{publicacionId}",
+                arguments = listOf(
+                    navArgument("publicacionId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val publicacionId = backStackEntry.arguments?.getString("publicacionId") ?: ""
+                AprobacionDtScreen(
+                    navController = navController,
+                    publicacionId = publicacionId
+                )
+            }
+
+            composable(
+                route = "detalle-post/{publicacionId}",
+                arguments = listOf(
+                    navArgument("publicacionId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val publicacionId = backStackEntry.arguments?.getString("publicacionId") ?: ""
+                DetallePostScreen(
+                    navController = navController,
+                    publicacionId = publicacionId
+                )
+            }
         }
     }
 }
