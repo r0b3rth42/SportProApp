@@ -1,11 +1,11 @@
-package com.example.sportproapp.presentation.matches
+package com.example.sportproapp.presentation.partidos
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sportproapp.data.model.DesafioPartido
 import com.example.sportproapp.data.model.EstadoDesafio
-import com.example.sportproapp.data.model.Partido
+import com.example.sportproapp.data.model.PartidoConDetalles
 import com.example.sportproapp.data.remote.supabase.DesafioPartidoRepository
 import com.example.sportproapp.data.session.UserSessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 sealed interface MatchesUiState {
     object Loading : MatchesUiState
     data class Success(
-        val partidosProgramados: List<Partido>,
+        val partidosProgramados: List<PartidoConDetalles>,
         val desafiosRecibidos: List<DesafioPartido>
     ) : MatchesUiState
     data class Error(val message: String) : MatchesUiState
@@ -52,15 +52,15 @@ class MatchesViewModel(
         _uiState.value = MatchesUiState.Loading
 
         viewModelScope.launch {
-            // Cargar desafíos recibidos y SOLO partidos amistosos
+            // Cargar desafíos recibidos y partidos programados con detalles completos
             val resDesafios = desafioRepository.getDesafiosRecibidos(academiaId)
-            val resPartidos = desafioRepository.getPartidosAmistososPorAcademia(academiaId)
+            val resPartidos = desafioRepository.getPartidosConDetallesPorAcademia(academiaId)
 
             val listaDesafios = resDesafios.getOrDefault(emptyList())
-            val listaPartidosAmistosos = resPartidos.getOrDefault(emptyList())
+            val listaPartidos = resPartidos.getOrDefault(emptyList())
 
             _uiState.value = MatchesUiState.Success(
-                partidosProgramados = listaPartidosAmistosos,
+                partidosProgramados = listaPartidos,
                 desafiosRecibidos = listaDesafios
             )
         }
@@ -77,7 +77,7 @@ class MatchesViewModel(
                 onSuccess = {
                     Log.d(TAG, "Desafío $desafioId aceptado. Recargando lista...")
                     _isProcessingAction.value = false
-                    cargarDatos() // Recarga automáticamente para mostrar el nuevo partido en la pestaña 0
+                    cargarDatos() // Recarga automáticamente para mostrar el nuevo partido programado
                 },
                 onFailure = { ex ->
                     Log.e(TAG, "Error al aceptar desafío", ex)

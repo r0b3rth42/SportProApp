@@ -39,6 +39,7 @@ import com.example.sportproapp.presentation.home.ParentHomeScreen
 import com.example.sportproapp.presentation.home.PlayerHomeScreen
 import com.example.sportproapp.presentation.jugador.PlayerProfileScreen
 import com.example.sportproapp.presentation.jugador.TeamDetailScreen
+import com.example.sportproapp.presentation.partidos.CrearPartidoScreen
 import com.example.sportproapp.presentation.partidos.MatchesScreen
 import com.example.sportproapp.presentation.teams.CreateTeamScreen
 import com.example.sportproapp.presentation.teams.TeamsListScreen
@@ -222,6 +223,7 @@ fun AppNavGraph(
 
             // --- PARTIDOS Y DESAFÍOS ---
             composable("matches") { MatchesScreen(navController = navController) }
+            composable("crear-partido") { CrearPartidoScreen(navController = navController) }
             composable("matches-create-challenge") { EnviarDesafioScreen(navController = navController) }
 
             // --- COMUNIDAD Y MURO DE PUBLICACIONES ---
