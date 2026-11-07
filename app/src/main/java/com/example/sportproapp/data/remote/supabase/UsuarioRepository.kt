@@ -18,7 +18,7 @@ object UsuarioRepository {
 
     private val auth = FirebaseAuth.getInstance()
 
-    suspend fun registerUser(name: String, email: String, password: String): Result<Unit> {
+    suspend fun registerUser(name: String, email: String, password: String, academiaId: String): Result<Unit> {
         return try {
             val authResult = auth.createUserWithEmailAndPassword(email, password).await()
             val uid = authResult.user?.uid ?: throw Exception("User ID es nulo")
@@ -28,7 +28,8 @@ object UsuarioRepository {
                 name = name,
                 email = email,
                 phone = "999999999",
-                role = "PENDIENTE"
+                role = "PENDIENTE",
+                academiaId = academiaId
             )
             supabase.from("usuarios").insert(nuevoUsuario)
             Result.success(Unit)
