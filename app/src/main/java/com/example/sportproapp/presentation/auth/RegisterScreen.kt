@@ -21,6 +21,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.Email
@@ -30,7 +31,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -44,6 +49,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,8 +65,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.sportproapp.data.remote.FirebaseAuthManager
-import com.example.sportproapp.data.remote.supabase
+import com.example.sportproapp.data.model.Academia
+import com.example.sportproapp.data.remote.supabase.AcademiaRepository
 import com.example.sportproapp.data.remote.supabase.UsuarioRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -86,8 +92,29 @@ fun RegisterScreen(
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
+    // Estados para la selección de Academia
+    var academiasList by remember { mutableStateOf<List<Academia>>(emptyList()) }
+    var selectedAcademia by remember { mutableStateOf<Academia?>(null) }
+    var isAcademiaDropdownExpanded by remember { mutableStateOf(false) }
+    var isLoadingAcademias by remember { mutableStateOf(true) }
+    var isRegistering by remember { mutableStateOf(false) }
+
     val context = LocalContext.current
     val snackBarHostState = remember { SnackbarHostState() }
+
+    // Cargar academias desde Supabase al iniciar
+    LaunchedEffect(Unit) {
+        AcademiaRepository.getAcademias().fold(
+            onSuccess = { lista ->
+                academiasList = lista
+                isLoadingAcademias = false
+            },
+            onFailure = {
+                isLoadingAcademias = false
+                Toast.makeText(context, "Error al cargar academias", Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
 
     Scaffold(
         containerColor = DarkBackground,
@@ -110,9 +137,7 @@ fun RegisterScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DarkBackground
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkBackground)
             )
         }
     ) { innerPadding ->
@@ -130,7 +155,7 @@ fun RegisterScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                // --- 1. LOGO Y TÍTULOS ---
+                // LOGO Y TÍTULOS
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.padding(top = 12.dp, bottom = 20.dp)
@@ -152,18 +177,8 @@ fun RegisterScreen(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     Row {
-                        Text(
-                            text = "Sport",
-                            color = Color.White,
-                            fontSize = 30.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "Pro",
-                            color = PrimaryLime,
-                            fontSize = 30.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Text(text = "Sport", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+                        Text(text = "Pro", color = PrimaryLime, fontSize = 30.sp, fontWeight = FontWeight.Bold)
                     }
 
                     Spacer(modifier = Modifier.height(4.dp))
@@ -175,7 +190,7 @@ fun RegisterScreen(
                     )
                 }
 
-                // --- 2. TARJETA FORMULARIO ---
+                // FORMULARIO
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -194,6 +209,82 @@ fun RegisterScreen(
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(bottom = 2.dp)
                         )
+
+                        // DESPLEGABLE DE ACADEMIA
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(
+                                text = "Academia / Club",
+                                color = TextLight,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+
+                            ExposedDropdownMenuBox(
+                                expanded = isAcademiaDropdownExpanded,
+                                onExpandedChange = {
+                                    if (!isLoadingAcademias) isAcademiaDropdownExpanded = !isAcademiaDropdownExpanded
+                                }
+                            ) {
+                                OutlinedTextField(
+                                    value = selectedAcademia?.nombre ?: "",
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .menuAnchor(),
+                                    placeholder = {
+                                        Text(
+                                            text = if (isLoadingAcademias) "Cargando academias..." else "Selecciona tu academia",
+                                            color = TextMuted,
+                                            fontSize = 14.sp
+                                        )
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.School,
+                                            contentDescription = null,
+                                            tint = TextMuted
+                                        )
+                                    },
+                                    trailingIcon = {
+                                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = isAcademiaDropdownExpanded)
+                                    },
+                                    shape = RoundedCornerShape(12.dp),
+                                    singleLine = true,
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedContainerColor = InputBackgroundColor,
+                                        unfocusedContainerColor = InputBackgroundColor,
+                                        focusedBorderColor = CardBorderColor,
+                                        unfocusedBorderColor = Color.Transparent,
+                                        focusedTextColor = Color.White,
+                                        unfocusedTextColor = Color.White
+                                    )
+                                )
+
+                                ExposedDropdownMenu(
+                                    expanded = isAcademiaDropdownExpanded,
+                                    onDismissRequest = { isAcademiaDropdownExpanded = false },
+                                    modifier = Modifier.background(DarkCardBackground)
+                                ) {
+                                    if (academiasList.isEmpty()) {
+                                        DropdownMenuItem(
+                                            text = { Text("No hay academias disponibles", color = TextMuted) },
+                                            onClick = { isAcademiaDropdownExpanded = false }
+                                        )
+                                    } else {
+                                        academiasList.forEach { academia ->
+                                            DropdownMenuItem(
+                                                text = { Text(academia.nombre, color = Color.White) },
+                                                onClick = {
+                                                    selectedAcademia = academia
+                                                    isAcademiaDropdownExpanded = false
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
 
                         CustomLabelTextField(
                             label = "Nombre completo",
@@ -242,13 +333,27 @@ fun RegisterScreen(
 
                         Button(
                             onClick = {
+                                if (selectedAcademia == null) {
+                                    Toast.makeText(context, "Debes seleccionar una academia", Toast.LENGTH_SHORT).show()
+                                    return@Button
+                                }
+                                if (password != confirmPassword) {
+                                    Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
+                                    return@Button
+                                }
+
+                                isRegistering = true
                                 CoroutineScope(Dispatchers.Main).launch {
-                                    val result = UsuarioRepository
-                                        //FirebaseAuthManager
-                                        .registerUser(fullName, email, password)
+                                    val result = UsuarioRepository.registerUser(
+                                        name = fullName,
+                                        email = email,
+                                        password = password,
+                                        academiaId = selectedAcademia!!.id
+                                    )
+                                    isRegistering = false
                                     result.fold(
                                         onSuccess = {
-                                            navController.navigate("login")
+                                            navController.navigate("select-role")
                                         },
                                         onFailure = { exception ->
                                             Toast.makeText(
@@ -256,11 +361,11 @@ fun RegisterScreen(
                                                 exception.message ?: "Error al registrar usuario",
                                                 Toast.LENGTH_LONG
                                             ).show()
-
                                         }
                                     )
                                 }
                             },
+                            enabled = !isRegistering,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(52.dp),
@@ -270,25 +375,29 @@ fun RegisterScreen(
                                 contentColor = DarkBackground
                             )
                         ) {
-                            Text(
-                                text = "Crear cuenta",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold
-                            )
+                            if (isRegistering) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = DarkBackground,
+                                    strokeWidth = 2.5.dp
+                                )
+                            } else {
+                                Text(
+                                    text = "Crear cuenta",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
                 }
 
-                // --- 3. PIE DE PÁGINA ---
+                // PIE DE PÁGINA
                 Row(
                     modifier = Modifier.padding(vertical = 20.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "¿Ya tienes una cuenta? ",
-                        color = TextMuted,
-                        fontSize = 14.sp
-                    )
+                    Text(text = "¿Ya tienes una cuenta? ", color = TextMuted, fontSize = 14.sp)
                     TextButton(
                         onClick = {
                             navController.navigate("login") {
@@ -309,7 +418,6 @@ fun RegisterScreen(
         }
     }
 }
-
 @Composable
 fun CustomLabelTextField(
     label: String,

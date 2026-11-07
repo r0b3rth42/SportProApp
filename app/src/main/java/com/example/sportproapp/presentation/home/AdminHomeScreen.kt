@@ -37,7 +37,7 @@ data class RecentActivity(
 fun AdminHomeScreen(
     navController: NavController,
     userName: String = "Carlos",
-    userTitle: String = "Entrenador • Club Tigres"
+    userTitle: String = "Administrador"
 ) {
     // Usamos un Box principal para contener el fondo oscuro y ubicar el FAB libremente arriba
     Box(
