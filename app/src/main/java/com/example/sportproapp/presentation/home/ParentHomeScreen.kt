@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.sportproapp.data.model.JugadorConUsuario
 import com.example.sportproapp.data.model.JugadorPerfil
+import com.example.sportproapp.data.remote.supabase.NotificacionRepository
 import com.example.sportproapp.data.remote.supabase.UsuarioRepository
 import com.example.sportproapp.presentation.auth.*
 import com.google.firebase.auth.FirebaseAuth
@@ -63,6 +64,14 @@ fun ParentHomeScreen(
         cargarRepresentados()
     }
 
+    // Avisos sin leer para la campana (2.05)
+    var notificacionesNoLeidas by remember { mutableIntStateOf(0) }
+    LaunchedEffect(Unit) {
+        currentUser?.uid?.let { uid ->
+            notificacionesNoLeidas = NotificacionRepository.contarNoLeidas(uid).getOrDefault(0)
+        }
+    }
+
     Scaffold(
         containerColor = DarkBackground
     ) { innerPadding ->
@@ -91,7 +100,8 @@ fun ParentHomeScreen(
                                 .size(48.dp)
                                 .clip(CircleShape)
                                 .background(InputBackgroundColor)
-                                .border(1.5.dp, PrimaryLime, CircleShape),
+                                .border(1.5.dp, PrimaryLime, CircleShape)
+                                .clickable { navController.navigate("mi-cuenta") },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -127,18 +137,28 @@ fun ParentHomeScreen(
                     }
 
                     IconButton(
-                        onClick = { /* Notificaciones */ },
+                        onClick = { navController.navigate("notificaciones") },
                         modifier = Modifier
                             .size(42.dp)
                             .background(DarkCardBackground, CircleShape)
                             .border(1.dp, CardBorderColor, CircleShape)
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Notifications,
-                            contentDescription = "Notificaciones",
-                            tint = TextLight,
-                            modifier = Modifier.size(22.dp)
-                        )
+                        BadgedBox(
+                            badge = {
+                                if (notificacionesNoLeidas > 0) {
+                                    Badge(containerColor = PrimaryLime, contentColor = DarkBackground) {
+                                        Text(notificacionesNoLeidas.toString())
+                                    }
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Notifications,
+                                contentDescription = "Notificaciones",
+                                tint = TextLight,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
                     }
                 }
             }

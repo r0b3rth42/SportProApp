@@ -25,6 +25,7 @@ import com.example.sportproapp.presentation.auth.PlayerProfileCompletionScreen
 import com.example.sportproapp.presentation.auth.RegisterScreen
 import com.example.sportproapp.presentation.auth.RoleSelectionScreen
 import com.example.sportproapp.presentation.community.AprobacionDtScreen
+import com.example.sportproapp.presentation.cuenta.MiCuentaScreen
 import com.example.sportproapp.presentation.community.DetallePostScreen
 import com.example.sportproapp.presentation.community.MuroComunidadScreen
 import com.example.sportproapp.presentation.desafio.EnviarDesafioScreen
@@ -40,6 +41,12 @@ import com.example.sportproapp.presentation.home.PlayerHomeScreen
 import com.example.sportproapp.presentation.jugador.PlayerProfileScreen
 import com.example.sportproapp.presentation.jugador.TeamDetailScreen
 import com.example.sportproapp.presentation.partidos.CrearPartidoScreen
+import com.example.sportproapp.presentation.mensualidades.ComprobantePagoScreen
+import com.example.sportproapp.presentation.mensualidades.MensualidadesAdminScreen
+import com.example.sportproapp.presentation.mensualidades.MensualidadesScreen
+import com.example.sportproapp.presentation.mensualidades.NuevaMensualidadScreen
+import com.example.sportproapp.presentation.mensualidades.PagarMensualidadScreen
+import com.example.sportproapp.presentation.notificaciones.NotificacionesScreen
 import com.example.sportproapp.presentation.partidos.MatchesScreen
 import com.example.sportproapp.presentation.teams.CreateTeamScreen
 import com.example.sportproapp.presentation.teams.TeamsListScreen
@@ -225,6 +232,43 @@ fun AppNavGraph(
             composable("matches") { MatchesScreen(navController = navController) }
             composable("crear-partido") { CrearPartidoScreen(navController = navController) }
             composable("matches-create-challenge") { EnviarDesafioScreen(navController = navController) }
+
+            // --- MENSUALIDADES (pago simulado) ---
+            composable("payments") { MensualidadesScreen(navController = navController) }
+            composable("admin_payments") { MensualidadesAdminScreen(navController = navController) }
+            composable("mensualidad-create") { NuevaMensualidadScreen(navController = navController) }
+
+            composable(
+                route = "pagar-mensualidad/{mensualidadId}",
+                arguments = listOf(
+                    navArgument("mensualidadId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val mensualidadId = backStackEntry.arguments?.getString("mensualidadId") ?: ""
+                PagarMensualidadScreen(
+                    navController = navController,
+                    mensualidadId = mensualidadId
+                )
+            }
+
+            composable(
+                route = "comprobante-pago/{mensualidadId}",
+                arguments = listOf(
+                    navArgument("mensualidadId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val mensualidadId = backStackEntry.arguments?.getString("mensualidadId") ?: ""
+                ComprobantePagoScreen(
+                    navController = navController,
+                    mensualidadId = mensualidadId
+                )
+            }
+
+            // --- NOTIFICACIONES ---
+            composable("notificaciones") { NotificacionesScreen(navController = navController) }
+
+            // --- MI CUENTA Y CERRAR SESIÓN ---
+            composable("mi-cuenta") { MiCuentaScreen(navController = navController) }
 
             // --- COMUNIDAD Y MURO DE PUBLICACIONES ---
             composable("community") {

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sportproapp.data.model.ComentarioConAutor
 import com.example.sportproapp.data.model.PublicacionConAutor
+import com.example.sportproapp.data.moderation.ComentarioModerator
 import com.example.sportproapp.data.remote.supabase.PublicacionRepository
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +20,8 @@ sealed interface DetallePostUiState {
         val comentarios: List<ComentarioConAutor>,
         val textoComentario: String = "",
         val responderAId: String? = null,
-        val responderANombre: String? = null
+        val responderANombre: String? = null,
+        val errorOfensivo: String? = null
     ) : DetallePostUiState
     data class Error(val message: String) : DetallePostUiState
 }
@@ -56,7 +58,8 @@ class DetallePostViewModel(
                     comentarios = comRes.getOrThrow(),
                     textoComentario = currentState?.textoComentario ?: "",
                     responderAId = currentState?.responderAId,
-                    responderANombre = currentState?.responderANombre
+                    responderANombre = currentState?.responderANombre,
+                    errorOfensivo = currentState?.errorOfensivo
                 )
             } else {
                 _uiState.value = DetallePostUiState.Error("Error al cargar detalles de la publicación")
@@ -66,7 +69,10 @@ class DetallePostViewModel(
 
     fun updateTextoComentario(text: String) {
         val currentState = _uiState.value as? DetallePostUiState.Success ?: return
-        _uiState.value = currentState.copy(textoComentario = text)
+        _uiState.value = currentState.copy(
+            textoComentario = text,
+            errorOfensivo = if (currentState.errorOfensivo != null) null else currentState.errorOfensivo
+        )
     }
 
     fun seleccionarRespuesta(comentarioId: String, autorNombre: String) {
@@ -91,6 +97,22 @@ class DetallePostViewModel(
         if (texto.isBlank()) return
 
         viewModelScope.launch {
+            // 1. Limpiar cualquier error de moderación anterior
+            _uiState.value = currentState.copy(errorOfensivo = null)
+
+            // 2. Evaluar el contenido mediante el Agente de IA / Moderación
+            val evaluacion = ComentarioModerator.evaluarComentario(texto)
+
+            if (!evaluacion.esAprobado) {
+                // 🛑 RECHAZADO: Contiene palabras o frases ofensivas
+                Log.w("DetallePostVM", "Comentario rechazado por la IA de moderación")
+                _uiState.value = currentState.copy(
+                    errorOfensivo = evaluacion.mensajeError ?: "Comentario tiene palabras o frases ofensivas y no será publicado"
+                )
+                return@launch
+            }
+
+            // ✅ APROBADO: Se inserta en la base de datos de Supabase
             val res = repository.agregarComentario(
                 publicacionId = currentPublicacionId,
                 autorId = usuarioActualId,
@@ -102,7 +124,8 @@ class DetallePostViewModel(
                 _uiState.value = currentState.copy(
                     textoComentario = "",
                     responderAId = null,
-                    responderANombre = null
+                    responderANombre = null,
+                    errorOfensivo = null
                 )
                 recargarComentarios()
             } else {

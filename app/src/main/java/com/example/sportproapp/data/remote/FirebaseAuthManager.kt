@@ -38,6 +38,11 @@ object FirebaseAuthManager {
 
 
 
+    // Cierra la sesión de Firebase en este dispositivo
+    fun logout() {
+        auth.signOut()
+    }
+
     fun getCurrentUserId(): String? {
         return auth.currentUser?.uid
     }
