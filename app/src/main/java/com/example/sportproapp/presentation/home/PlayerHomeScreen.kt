@@ -128,7 +128,8 @@ fun PlayerHomeScreen(
                                 .size(48.dp)
                                 .clip(CircleShape)
                                 .background(InputBackgroundColor)
-                                .border(1.5.dp, PrimaryLime, CircleShape),
+                                .border(1.5.dp, PrimaryLime, CircleShape)
+                                .clickable { navController.navigate("mi-cuenta") },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
