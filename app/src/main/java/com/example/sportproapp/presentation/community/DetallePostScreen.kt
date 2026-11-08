@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.*
@@ -82,6 +83,7 @@ fun DetallePostScreen(
                 BottomBarComentario(
                     texto = state.textoComentario,
                     responderANombre = state.responderANombre,
+                    errorOfensivo = state.errorOfensivo,
                     onValueChange = { viewModel.updateTextoComentario(it) },
                     onCancelarRespuesta = { viewModel.cancelarRespuesta() },
                     onEnviar = { viewModel.enviarComentario() }
@@ -304,7 +306,7 @@ fun ComentarioItem(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = if (comentarioConAutor.isLikedByCurrentUser) "Me gusta" else "Me gusta",
+                        text = "Me gusta",
                         color = if (comentarioConAutor.isLikedByCurrentUser) PrimaryLime else TextMuted,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
@@ -325,11 +327,12 @@ fun ComentarioItem(
     }
 }
 
-// --- BARRA INFERIOR PARA ESCRIBIR COMENTARIOS ---
+// --- BARRA INFERIOR PARA ESCRIBIR COMENTARIOS CON MODERACIÓN POR IA EN TIEMPO REAL ---
 @Composable
 fun BottomBarComentario(
     texto: String,
     responderANombre: String?,
+    errorOfensivo: String?,
     onValueChange: (String) -> Unit,
     onCancelarRespuesta: () -> Unit,
     onEnviar: () -> Unit
@@ -340,6 +343,40 @@ fun BottomBarComentario(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
+
+            // 🚨 ADVERTENCIA EN ROJO SI EL AGENTE DE IA DETECTA LENGUAJE OFENSIVO O INAPROPIADO
+            if (!errorOfensivo.isNullOrBlank()) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp)
+                        .border(1.dp, Color(0xFFFF3333), RoundedCornerShape(10.dp)),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF2E0C0C)),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.ErrorOutline,
+                            contentDescription = "Error",
+                            tint = Color(0xFFFF3333),
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = errorOfensivo,
+                            color = Color(0xFFFF3333),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+
             if (!responderANombre.isNullOrBlank()) {
                 Row(
                     modifier = Modifier
