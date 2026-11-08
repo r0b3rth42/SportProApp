@@ -40,6 +40,7 @@ import com.example.sportproapp.presentation.home.ParentHomeScreen
 import com.example.sportproapp.presentation.home.PlayerHomeScreen
 import com.example.sportproapp.presentation.jugador.PlayerProfileScreen
 import com.example.sportproapp.presentation.jugador.TeamDetailScreen
+import com.example.sportproapp.presentation.partidos.CrearPartidoScreen
 import com.example.sportproapp.presentation.mensualidades.ComprobantePagoScreen
 import com.example.sportproapp.presentation.mensualidades.MensualidadesAdminScreen
 import com.example.sportproapp.presentation.mensualidades.MensualidadesScreen
@@ -229,6 +230,7 @@ fun AppNavGraph(
 
             // --- PARTIDOS Y DESAFÍOS ---
             composable("matches") { MatchesScreen(navController = navController) }
+            composable("crear-partido") { CrearPartidoScreen(navController = navController) }
             composable("matches-create-challenge") { EnviarDesafioScreen(navController = navController) }
 
             // --- MENSUALIDADES (pago simulado) ---
