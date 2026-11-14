@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -5,6 +7,19 @@ plugins {
     //SUPABASE
     kotlin("plugin.serialization") version "2.0.0"
 }
+
+// Cargar variables de entorno desde el archivo .env o local.properties de forma segura
+val envProperties = Properties()
+val envFile = rootProject.file(".env")
+if (envFile.exists()) {
+    envProperties.load(envFile.inputStream())
+}
+val localFile = rootProject.file("local.properties")
+if (localFile.exists()) {
+    envProperties.load(localFile.inputStream())
+}
+
+val geminiKey = envProperties.getProperty("GEMINI_API_KEY") ?: ""
 
 android {
     namespace = "com.example.sportproapp"
@@ -20,6 +35,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
     }
 
     buildTypes {
@@ -35,6 +52,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
