@@ -152,7 +152,7 @@ fun AdminHomeScreen(
                             icon = Icons.Outlined.Group,
                             tag = "JUGADORES",
                             mainText = "24",
-                            subText = "22 Activos hoy",
+                            subText = "22 Activos hoy por ahora",
                             showStatusDot = true,
                             onClick = { navController.navigate("teams") }
                         )
