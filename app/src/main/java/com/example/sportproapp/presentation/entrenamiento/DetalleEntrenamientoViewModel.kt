@@ -2,8 +2,10 @@ package com.example.sportproapp.presentation.entrenamiento
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.sportproapp.data.model.AppPermission
 import com.example.sportproapp.data.model.BloqueEntrenamiento
 import com.example.sportproapp.data.model.Ejercicio
+import com.example.sportproapp.data.model.hasPermission
 import com.example.sportproapp.data.remote.supabase.EntrenamientoRepository
 import com.example.sportproapp.data.session.UserSessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,8 +28,15 @@ class DetalleEntrenamientoViewModel(
 
     private val _uiState = MutableStateFlow<DetalleEntrenamientoUiState>(DetalleEntrenamientoUiState.Loading)
     val uiState: StateFlow<DetalleEntrenamientoUiState> = _uiState.asStateFlow()
-    private val _isAdmin = MutableStateFlow(false)
-    val isAdmin = _isAdmin.asStateFlow()
+
+    private val _canTakeAttendance = MutableStateFlow(false)
+    val canTakeAttendance: StateFlow<Boolean> = _canTakeAttendance.asStateFlow()
+
+    private val _canManageExercises = MutableStateFlow(false)
+    val canManageExercises: StateFlow<Boolean> = _canManageExercises.asStateFlow()
+
+    // Alias para compatibilidad
+    val isAdmin: StateFlow<Boolean> get() = _canManageExercises.asStateFlow()
 
     // Lista de ejercicios previamente creados en la academia
     private val _ejerciciosAcademia = MutableStateFlow<List<Ejercicio>>(emptyList())
@@ -37,13 +46,14 @@ class DetalleEntrenamientoViewModel(
     val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
 
     init {
-        validarRolAdmin()
+        cargarPermisos()
     }
 
-    private fun validarRolAdmin(){
+    private fun cargarPermisos() {
         viewModelScope.launch {
-            val rol = UserSessionManager.getCurrentUser()?.role
-            _isAdmin.value = ("ADM" == rol)
+            val session = UserSessionManager.getCurrentUser()
+            _canTakeAttendance.value = session.hasPermission(AppPermission.TOMAR_ASISTENCIA)
+            _canManageExercises.value = session.hasPermission(AppPermission.CREAR_ENTRENAMIENTO)
         }
     }
 

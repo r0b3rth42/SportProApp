@@ -3,8 +3,11 @@ package com.example.sportproapp.presentation.community
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.sportproapp.data.model.AppPermission
 import com.example.sportproapp.data.model.MiembroComunidad
 import com.example.sportproapp.data.model.PublicacionConAutor
+import com.example.sportproapp.data.model.hasPermission
+import com.example.sportproapp.data.model.toUserRole
 import com.example.sportproapp.data.remote.supabase.PublicacionRepository
 import com.example.sportproapp.data.remote.supabase.UsuarioRepository
 import com.google.firebase.auth.FirebaseAuth
@@ -78,7 +81,7 @@ class MuroComunidadViewModel(
                 academiaId = repository.obtenerAcademiaIdDelUsuario(usuarioActualId)
             }
 
-            val esAdmin = (userRole == "ADM")
+            val esAdmin = userRole.toUserRole().hasPermission(AppPermission.MODERAR_PUBLICACIONES)
 
             // Si es Admin, obtiene la lista de publicaciones pendientes de aprobación
             val pendientesLista = if (esAdmin) {

@@ -32,10 +32,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.sportproapp.data.model.AppPermission
 import com.example.sportproapp.data.model.DesafioPartido
 import com.example.sportproapp.data.model.EstadoDesafio
 import com.example.sportproapp.data.model.PartidoConDetalles
 import com.example.sportproapp.presentation.auth.*
+import com.example.sportproapp.presentation.components.RequirePermission
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -206,21 +208,23 @@ fun MatchesScreen(
         }
 
         // --- 4. BOTÓN FLOTANTE (+) PARA CREAR PARTIDO O DESAFÍO ---
-        FloatingActionButton(
-            onClick = { mostrarMenuCreacion = true },
-            containerColor = PrimaryLime,
-            contentColor = DarkBackground,
-            shape = CircleShape,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = 20.dp)
-                .size(60.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Crear Partido",
-                modifier = Modifier.size(32.dp)
-            )
+        RequirePermission(permission = AppPermission.CREAR_PARTIDO) {
+            FloatingActionButton(
+                onClick = { mostrarMenuCreacion = true },
+                containerColor = PrimaryLime,
+                contentColor = DarkBackground,
+                shape = CircleShape,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 20.dp, bottom = 20.dp)
+                    .size(60.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Crear Partido",
+                    modifier = Modifier.size(32.dp)
+                )
+            }
         }
     }
 

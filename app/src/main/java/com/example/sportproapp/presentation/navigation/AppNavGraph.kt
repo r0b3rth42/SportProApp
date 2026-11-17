@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -17,6 +19,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.sportproapp.data.model.toUserRole
+import com.example.sportproapp.data.session.UserSessionManager
+import com.example.sportproapp.presentation.components.LocalUserRole
+import com.example.sportproapp.presentation.components.LocalUserSession
 import com.example.sportproapp.presentation.auth.AdminProfileCompletionScreen
 import com.example.sportproapp.presentation.auth.LinkParentCodeScreen
 import com.example.sportproapp.presentation.auth.LoginScreen
@@ -63,7 +69,14 @@ fun AppNavGraph(
 
     val bottomBarRoutes = listOf("home", "teams", "entrenamiento", "matches", "community")
 
-    Scaffold(
+    val activeSession by UserSessionManager.userSession.collectAsState()
+    val activeRole = activeSession?.role?.toUserRole()
+
+    CompositionLocalProvider(
+        LocalUserSession provides activeSession,
+        LocalUserRole provides activeRole
+    ) {
+        Scaffold(
         bottomBar = {
             val showBottomBar = bottomBarRoutes.any { route ->
                 currentRoute?.startsWith(route) == true
@@ -302,6 +315,7 @@ fun AppNavGraph(
             }
         }
     }
+}
 }
 
 @Composable

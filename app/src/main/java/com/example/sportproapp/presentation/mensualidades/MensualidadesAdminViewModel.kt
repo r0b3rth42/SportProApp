@@ -2,9 +2,11 @@ package com.example.sportproapp.presentation.mensualidades
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.sportproapp.data.model.AppPermission
 import com.example.sportproapp.data.model.EstadoVisualMensualidad
 import com.example.sportproapp.data.model.MensualidadJugadorUI
 import com.example.sportproapp.data.model.estadoVisual
+import com.example.sportproapp.data.model.hasPermission
 import com.example.sportproapp.data.model.moverPeriodo
 import com.example.sportproapp.data.model.periodoActual
 import com.example.sportproapp.data.remote.supabase.MensualidadRepository
@@ -52,7 +54,7 @@ class MensualidadesAdminViewModel(
             _uiState.value = MensualidadesAdminUiState.Error("No se encontró la sesión del usuario.")
             return
         }
-        _esAdmin.value = session.role == "ADM"
+        _esAdmin.value = session.hasPermission(AppPermission.GESTIONAR_MENSUALIDADES)
 
         if (esRefresh) _isRefreshing.value = true
         else _uiState.value = MensualidadesAdminUiState.Loading

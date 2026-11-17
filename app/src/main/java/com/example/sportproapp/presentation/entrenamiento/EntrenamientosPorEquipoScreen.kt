@@ -25,8 +25,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.sportproapp.data.model.AppPermission
+import com.example.sportproapp.data.model.hasPermission
 import com.example.sportproapp.data.remote.supabase.EntrenamientoRepository
 import com.example.sportproapp.data.session.UserSessionManager
+import com.example.sportproapp.presentation.components.RequirePermission
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,17 +38,21 @@ import kotlinx.coroutines.launch
 class EntrenamientosPorEquipoViewModel : ViewModel() {
     private val _uiState = MutableStateFlow<EntrenamientosUiState>(EntrenamientosUiState.Loading)
     val uiState: StateFlow<EntrenamientosUiState> = _uiState.asStateFlow()
-    private val _isAdmin = MutableStateFlow<Boolean>(false)
-    val isAdmin = _isAdmin.asStateFlow()
+
+    private val _canCreateTraining = MutableStateFlow(false)
+    val canCreateTraining: StateFlow<Boolean> = _canCreateTraining.asStateFlow()
+
+    // Alias para compatibilidad
+    val isAdmin: StateFlow<Boolean> get() = _canCreateTraining.asStateFlow()
 
     init {
-        verificarRolUsuario()
+        verificarPermisosUsuario()
     }
 
-    private fun verificarRolUsuario() {
+    private fun verificarPermisosUsuario() {
         viewModelScope.launch {
-            val rol = UserSessionManager.getCurrentUser()?.role
-            _isAdmin.value = ("ADM" == rol)
+            val session = UserSessionManager.getCurrentUser()
+            _canCreateTraining.value = session.hasPermission(AppPermission.CREAR_ENTRENAMIENTO)
         }
     }
 
@@ -72,7 +79,6 @@ fun EntrenamientosPorEquipoScreen(
     viewModel: EntrenamientosPorEquipoViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val isAdmin by viewModel.isAdmin.collectAsState()
 
     LaunchedEffect(equipoId) {
         viewModel.cargarEntrenamientos(equipoId)
@@ -97,7 +103,8 @@ fun EntrenamientosPorEquipoScreen(
             )
         },
         floatingActionButton = {
-            if(isAdmin) {
+            // Protección por permiso de creación de entrenamiento (Entrenador / DT)
+            RequirePermission(permission = AppPermission.CREAR_ENTRENAMIENTO) {
                 FloatingActionButton(
                     onClick = { onAddClick(equipoId) },
                     containerColor = PrimaryGreen,
@@ -112,7 +119,6 @@ fun EntrenamientosPorEquipoScreen(
                     )
                 }
             }
-
         }
     ) { innerPadding ->
         LazyColumn(
