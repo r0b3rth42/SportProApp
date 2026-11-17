@@ -21,8 +21,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.sportproapp.data.model.AppPermission
 import com.example.sportproapp.data.model.JugadorConUsuario
 import com.example.sportproapp.presentation.auth.*
+import com.example.sportproapp.presentation.components.RequirePermission
 
 @Composable
 fun TeamDetailScreen(
@@ -39,7 +41,6 @@ fun TeamDetailScreen(
 
     var showAddPlayerDialog by remember { mutableStateOf(false) }
     val playersUiState by viewModel.playersUiState.collectAsState()
-    val isAdmin by viewModel.isAdmin.collectAsState()
 
     LaunchedEffect(teamId) {
         viewModel.fetchTeamPlayers(teamId)
@@ -63,8 +64,7 @@ fun TeamDetailScreen(
                 playerCount = playerCount,
                 season = season,
                 onBackClick = { navController.popBackStack() },
-                onEditClick = {},
-                isAdmin = isAdmin
+                onEditClick = {}
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -123,7 +123,7 @@ fun TeamDetailScreen(
             }
         }
 
-        if(isAdmin) {
+        RequirePermission(permission = AppPermission.GESTIONAR_EQUIPOS) {
             FloatingActionButton(
                 onClick = {
                     viewModel.fetchUnassignedPlayers()
@@ -337,8 +337,7 @@ fun TeamHeaderCard(
     playerCount: Int,
     season: String,
     onBackClick: () -> Unit,
-    onEditClick: () -> Unit,
-    isAdmin: Boolean
+    onEditClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -371,7 +370,7 @@ fun TeamHeaderCard(
                         modifier = Modifier.size(20.dp)
                     )
                 }
-                if(isAdmin) {
+                RequirePermission(permission = AppPermission.GESTIONAR_EQUIPOS) {
                     Button(
                         onClick = onEditClick,
                         colors = ButtonDefaults.buttonColors(

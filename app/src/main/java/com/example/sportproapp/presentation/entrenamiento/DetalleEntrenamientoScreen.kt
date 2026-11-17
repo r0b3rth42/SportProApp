@@ -25,9 +25,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.sportproapp.data.model.AppPermission
 import com.example.sportproapp.data.model.BloqueEntrenamiento
 import com.example.sportproapp.data.model.Ejercicio
 import com.example.sportproapp.presentation.auth.InputBackgroundColor
+import com.example.sportproapp.presentation.components.RequirePermission
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,7 +43,6 @@ fun DetalleEntrenamientoScreen(
     val uiState by viewModel.uiState.collectAsState()
     val ejerciciosAcademia by viewModel.ejerciciosAcademia.collectAsState()
     val isSaving by viewModel.isSaving.collectAsState()
-    val isAdmin by viewModel.isAdmin.collectAsState()
 
     // Control de visibilidad del BottomSheet
     var bloqueSeleccionado by remember { mutableStateOf<BloqueEntrenamiento?>(null) }
@@ -81,18 +82,19 @@ fun DetalleEntrenamientoScreen(
                     }
                 },
                 actions = {
-                    // ACCIÓN PARA NAVEGAR A ASISTENCIA
-                    // esta accion debe habilitarse solo al entrenador
-                    IconButton(
-                        onClick = {
-                            navController.navigate("asistencia_entrenamiento/$entrenamientoId/$equipoId")
+                    // Solo quien posee el permiso TOMAR_ASISTENCIA (Entrenador/DT) puede ver el acceso
+                    RequirePermission(permission = AppPermission.TOMAR_ASISTENCIA) {
+                        IconButton(
+                            onClick = {
+                                navController.navigate("asistencia_entrenamiento/$entrenamientoId/$equipoId")
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.HowToReg,
+                                contentDescription = "Asistencia",
+                                tint = PrimaryGreen
+                            )
                         }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.HowToReg,
-                            contentDescription = "Asistencia",
-                            tint = PrimaryGreen
-                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundColor)
@@ -178,8 +180,7 @@ fun DetalleEntrenamientoScreen(
                                 onAgregarClick = {
                                     bloqueSeleccionado = bloque
                                     showBottomSheet = true
-                                },
-                                isAdmin = isAdmin
+                                }
                             )
                             Spacer(modifier = Modifier.height(10.dp))
                         }
@@ -194,7 +195,6 @@ fun DetalleEntrenamientoScreen(
                                 )
                             }
                         } else {
-                            // Dentro de DetalleEntrenamientoScreen.kt, en la renderización de las tarjetas:
                             items(ejerciciosBloque) { ejercicio ->
                                 TarjetaEjercicioItem(
                                     ejercicio = ejercicio,
@@ -202,8 +202,7 @@ fun DetalleEntrenamientoScreen(
                                         ejercicio.id?.let { ejercicioId ->
                                             viewModel.quitarEjercicio(entrenamientoId, ejercicioId)
                                         }
-                                    },
-                                    isAdmin = isAdmin
+                                    }
                                 )
                                 Spacer(modifier = Modifier.height(10.dp))
                             }
@@ -217,33 +216,35 @@ fun DetalleEntrenamientoScreen(
             }
         }
 
-        // BOTTOM SHEET PARA AGREGAR O CREAR EJERCICIO, solo entrenador puede hacer esto
+        // BOTTOM SHEET PARA AGREGAR O CREAR EJERCICIO (Protegido por permiso CREAR_ENTRENAMIENTO)
         if (showBottomSheet && bloqueSeleccionado != null) {
-            ModalBottomSheet(
-                onDismissRequest = { showBottomSheet = false },
-                containerColor = CardBackgroundColor
-            ) {
-                AgregarEjercicioSheetContent(
-                    bloque = bloqueSeleccionado!!,
-                    ejerciciosExistentes = ejerciciosAcademia.filter { it.bloque == bloqueSeleccionado },
-                    isSaving = isSaving,
-                    onSeleccionarExistente = { ejercicioId ->
-                        viewModel.asociarEjercicioExistente(entrenamientoId, ejercicioId) {
-                            showBottomSheet = false
+            RequirePermission(permission = AppPermission.CREAR_ENTRENAMIENTO) {
+                ModalBottomSheet(
+                    onDismissRequest = { showBottomSheet = false },
+                    containerColor = CardBackgroundColor
+                ) {
+                    AgregarEjercicioSheetContent(
+                        bloque = bloqueSeleccionado!!,
+                        ejerciciosExistentes = ejerciciosAcademia.filter { it.bloque == bloqueSeleccionado },
+                        isSaving = isSaving,
+                        onSeleccionarExistente = { ejercicioId ->
+                            viewModel.asociarEjercicioExistente(entrenamientoId, ejercicioId) {
+                                showBottomSheet = false
+                            }
+                        },
+                        onCrearNuevo = { titulo, desc, duracion ->
+                            viewModel.crearYAsociarNuevoEjercicio(
+                                entrenamientoId = entrenamientoId,
+                                bloque = bloqueSeleccionado!!,
+                                titulo = titulo,
+                                descripcion = desc,
+                                duracionMin = duracion
+                            ) {
+                                showBottomSheet = false
+                            }
                         }
-                    },
-                    onCrearNuevo = { titulo, desc, duracion ->
-                        viewModel.crearYAsociarNuevoEjercicio(
-                            entrenamientoId = entrenamientoId,
-                            bloque = bloqueSeleccionado!!,
-                            titulo = titulo,
-                            descripcion = desc,
-                            duracionMin = duracion
-                        ) {
-                            showBottomSheet = false
-                        }
-                    }
-                )
+                    )
+                }
             }
         }
     }
@@ -438,8 +439,7 @@ fun AgregarEjercicioSheetContent(
 @Composable
 fun SeccionHeader(
     titulo: String,
-    onAgregarClick: () -> Unit,
-    isAdmin: Boolean
+    onAgregarClick: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -453,7 +453,8 @@ fun SeccionHeader(
             fontWeight = FontWeight.Bold
         )
 
-        if(isAdmin) {
+        // Botón de agregar protegido por el permiso CREAR_ENTRENAMIENTO (Director Técnico / Entrenador)
+        RequirePermission(permission = AppPermission.CREAR_ENTRENAMIENTO) {
             OutlinedButton(
                 onClick = onAgregarClick,
                 shape = RoundedCornerShape(8.dp),
@@ -472,15 +473,13 @@ fun SeccionHeader(
                 )
             }
         }
-
     }
 }
 
 @Composable
 fun TarjetaEjercicioItem(
     ejercicio: Ejercicio,
-    onEliminarClick: () -> Unit = {},
-    isAdmin: Boolean
+    onEliminarClick: () -> Unit = {}
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = CardBackgroundColor),
@@ -535,8 +534,8 @@ fun TarjetaEjercicioItem(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Botón de eliminar ejercicio de esta sesión
-            if(isAdmin) {
+            // Botón de eliminar ejercicio protegido por el permiso CREAR_ENTRENAMIENTO (Director Técnico / Entrenador)
+            RequirePermission(permission = AppPermission.CREAR_ENTRENAMIENTO) {
                 IconButton(
                     onClick = onEliminarClick,
                     modifier = Modifier.size(28.dp)
@@ -549,7 +548,6 @@ fun TarjetaEjercicioItem(
                     )
                 }
             }
-
         }
     }
 }

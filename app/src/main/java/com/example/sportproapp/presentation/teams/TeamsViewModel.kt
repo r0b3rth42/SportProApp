@@ -1,15 +1,17 @@
 package com.example.sportproapp.presentation.teams
 
 import androidx.compose.ui.graphics.Color
+import androidx.core.graphics.toColorInt
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.sportproapp.data.model.AppPermission
+import com.example.sportproapp.data.model.hasPermission
 import com.example.sportproapp.data.remote.supabase.EquipoRepository
 import com.example.sportproapp.data.session.UserSessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import androidx.core.graphics.toColorInt
 
 // Modelo para la UI
 data class TeamUiModel(
@@ -33,19 +35,22 @@ class TeamsViewModel(
     private val _uiState = MutableStateFlow<TeamsUiState>(TeamsUiState.Loading)
     val uiState: StateFlow<TeamsUiState> = _uiState.asStateFlow()
 
-    // Estado reactivo para determinar si el usuario actual es administrador
-    private val _isAdmin = MutableStateFlow(false)
-    val isAdmin: StateFlow<Boolean> = _isAdmin.asStateFlow()
+    // Estado reactivo para determinar si el usuario actual posee permisos de gestión de equipos
+    private val _canManageTeams = MutableStateFlow(false)
+    val canManageTeams: StateFlow<Boolean> = _canManageTeams.asStateFlow()
+
+    // Alias para retrocompatibilidad
+    val isAdmin: StateFlow<Boolean> get() = _canManageTeams.asStateFlow()
 
     init {
-        verificarRolUsuario()
+        verificarPermisosUsuario()
         fetchTeams()
     }
 
-    private fun verificarRolUsuario() {
+    private fun verificarPermisosUsuario() {
         viewModelScope.launch {
-            val rol = UserSessionManager.getCurrentUser()?.role
-            _isAdmin.value = (rol == "ADM")
+            val session = UserSessionManager.getCurrentUser()
+            _canManageTeams.value = session.hasPermission(AppPermission.GESTIONAR_EQUIPOS)
         }
     }
 
@@ -53,7 +58,7 @@ class TeamsViewModel(
         viewModelScope.launch {
             _uiState.value = TeamsUiState.Loading
 
-            val user = UserSessionManager.getCurrentUser();
+            val user = UserSessionManager.getCurrentUser()
 
             val result = repository.getEquiposByAcademy(user?.academiaId.toString())
 

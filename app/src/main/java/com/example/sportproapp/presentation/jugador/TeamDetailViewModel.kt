@@ -1,9 +1,10 @@
 package com.example.sportproapp.presentation.jugador
 
-import android.os.UserManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.sportproapp.data.model.AppPermission
 import com.example.sportproapp.data.model.JugadorConUsuario
+import com.example.sportproapp.data.model.hasPermission
 import com.example.sportproapp.data.remote.supabase.UsuarioRepository
 import com.example.sportproapp.data.session.UserSessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,21 +36,23 @@ class TeamDetailViewModel(
     private val _unassignedUiState = MutableStateFlow<UnassignedPlayersUiState>(UnassignedPlayersUiState.Loading)
     val unassignedUiState: StateFlow<UnassignedPlayersUiState> = _unassignedUiState.asStateFlow()
 
-    private val _isAdmin = MutableStateFlow<Boolean>(false)
-    val isAdmin = _isAdmin.asStateFlow()
+    private val _canManageTeams = MutableStateFlow(false)
+    val canManageTeams: StateFlow<Boolean> = _canManageTeams.asStateFlow()
+
+    // Alias para compatibilidad
+    val isAdmin: StateFlow<Boolean> get() = _canManageTeams.asStateFlow()
 
     init {
-        verificarRolUsuario()
+        verificarPermisosUsuario()
     }
 
-    private fun verificarRolUsuario() {
+    private fun verificarPermisosUsuario() {
         viewModelScope.launch {
-            val rol = UserSessionManager.getCurrentUser()?.role
-            _isAdmin.value = ("ADM" == rol)
+            val session = UserSessionManager.getCurrentUser()
+            _canManageTeams.value = session.hasPermission(AppPermission.GESTIONAR_EQUIPOS)
         }
     }
 
-    // Cargar jugadores que pertenecen a este equipo (puedes crear el método en tu repo equivalente a getMisRepresentados pero por equipo_id)
     fun fetchTeamPlayers(teamId: String) {
         viewModelScope.launch {
             _playersUiState.value = TeamPlayersUiState.Loading
@@ -66,7 +69,6 @@ class TeamDetailViewModel(
         }
     }
 
-    // Cargar los jugadores libres usando tu repositorio real
     fun fetchUnassignedPlayers() {
         viewModelScope.launch {
             _unassignedUiState.value = UnassignedPlayersUiState.Loading
@@ -81,18 +83,14 @@ class TeamDetailViewModel(
         }
     }
 
-    // Asignar jugador actualizando su equipo_id en Supabase
     fun assignPlayerToTeam(playerId: String, teamId: String, onComplete: () -> Unit) {
         viewModelScope.launch {
             try {
                 val result = usuarioRepository.assignPlayerToTeam(playerId, teamId)
                 if(result.isSuccess) {
                     onComplete()
-                    fetchTeamPlayers(teamId) // Recargar la lista del equipo
-                } else {
-                    // opcional
+                    fetchTeamPlayers(teamId)
                 }
-
             } catch (e: Exception) {
                 // Manejar error de asignación
             }

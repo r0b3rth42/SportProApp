@@ -20,7 +20,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.sportproapp.data.model.AppPermission
 import com.example.sportproapp.presentation.auth.*
+import com.example.sportproapp.presentation.components.RequirePermission
 
 @Composable
 fun TeamsListScreen(
@@ -33,7 +35,6 @@ fun TeamsListScreen(
 
     // Recolectar el estado reactivo del ViewModel
     val uiState by viewModel.uiState.collectAsState()
-    val isAdmin by viewModel.isAdmin.collectAsState()
 
     Box(
         modifier = Modifier
@@ -166,8 +167,8 @@ fun TeamsListScreen(
             }
         }
 
-        // --- 4. BOTÓN FLOTANTE (FAB) ---
-        if(isAdmin) {
+        // --- 4. BOTÓN FLOTANTE (FAB) PROTEGIDO POR PERMISO DE GESTIÓN DE EQUIPOS ---
+        RequirePermission(permission = AppPermission.GESTIONAR_EQUIPOS) {
             FloatingActionButton(
                 onClick = {
                     navController.navigate("teams-create")
