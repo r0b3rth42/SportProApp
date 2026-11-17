@@ -274,11 +274,9 @@ fun LoginScreen(
                                                     if (userResult != null) {
                                                         var academiaId: String? = null
 
-                                                        // Si es Admin, podemos obtener su academiaId
-                                                        if (userResult.role == "ADM") {
-                                                            val adminProfile = UsuarioRepository.getAdminProfile(uid).getOrNull()
-                                                            academiaId = adminProfile?.academiaId
-                                                        }
+
+                                                        academiaId = userResult.academiaId
+
 
                                                         // Guardamos en la caché global
                                                         UserSessionManager.setSession(

@@ -82,6 +82,7 @@ fun DetalleEntrenamientoScreen(
                 },
                 actions = {
                     // ACCIÓN PARA NAVEGAR A ASISTENCIA
+                    // esta accion debe habilitarse solo al entrenador
                     IconButton(
                         onClick = {
                             navController.navigate("asistencia_entrenamiento/$entrenamientoId/$equipoId")
@@ -216,7 +217,7 @@ fun DetalleEntrenamientoScreen(
             }
         }
 
-        // BOTTOM SHEET PARA AGREGAR O CREAR EJERCICIO
+        // BOTTOM SHEET PARA AGREGAR O CREAR EJERCICIO, solo entrenador puede hacer esto
         if (showBottomSheet && bloqueSeleccionado != null) {
             ModalBottomSheet(
                 onDismissRequest = { showBottomSheet = false },

@@ -72,6 +72,7 @@ fun EntrenamientosPorEquipoScreen(
     viewModel: EntrenamientosPorEquipoViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    //aqui cambiar, solo el entrenador deberia poder hacer esto
     val isAdmin by viewModel.isAdmin.collectAsState()
 
     LaunchedEffect(equipoId) {
