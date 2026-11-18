@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.sportproapp.data.model.DesafioPartido
 import com.example.sportproapp.data.model.EstadoDesafio
 import com.example.sportproapp.data.model.PartidoConDetalles
+import com.example.sportproapp.data.remote.supabase.ConvocatoriaRepository
 import com.example.sportproapp.data.remote.supabase.DesafioPartidoRepository
 import com.example.sportproapp.data.session.UserSessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +24,8 @@ sealed interface MatchesUiState {
 }
 
 class MatchesViewModel(
-    private val desafioRepository: DesafioPartidoRepository = DesafioPartidoRepository
+    private val desafioRepository: DesafioPartidoRepository = DesafioPartidoRepository,
+    private val convocatoriaRepository: ConvocatoriaRepository = ConvocatoriaRepository
 ) : ViewModel() {
 
     private companion object {
@@ -43,6 +45,8 @@ class MatchesViewModel(
     fun cargarDatos() {
         val currentUser = UserSessionManager.getCurrentUser()
         val academiaId = currentUser?.academiaId ?: ""
+        val userId = currentUser?.uid ?: ""
+        val userRole = currentUser?.role?.uppercase() ?: ""
 
         if (academiaId.isBlank()) {
             _uiState.value = MatchesUiState.Error("No se encontró academia asociada en la sesión.")
@@ -52,12 +56,18 @@ class MatchesViewModel(
         _uiState.value = MatchesUiState.Loading
 
         viewModelScope.launch {
-            // Cargar desafíos recibidos y partidos programados con detalles completos
             val resDesafios = desafioRepository.getDesafiosRecibidos(academiaId)
             val resPartidos = desafioRepository.getPartidosConDetallesPorAcademia(academiaId)
 
+            var listaPartidos = resPartidos.getOrDefault(emptyList())
             val listaDesafios = resDesafios.getOrDefault(emptyList())
-            val listaPartidos = resPartidos.getOrDefault(emptyList())
+
+            // Si el usuario es un jugador (JUG), filtramos para mostrar únicamente los partidos en los que ha sido convocado
+            if (userRole == "JUG" && userId.isNotBlank()) {
+                val resConvocatorias = convocatoriaRepository.getConvocatoriasParaJugador(userId)
+                val partidosConvocadosIds = resConvocatorias.getOrDefault(emptyList()).map { it.partidoId }.toSet()
+                listaPartidos = listaPartidos.filter { it.id in partidosConvocadosIds }
+            }
 
             _uiState.value = MatchesUiState.Success(
                 partidosProgramados = listaPartidos,

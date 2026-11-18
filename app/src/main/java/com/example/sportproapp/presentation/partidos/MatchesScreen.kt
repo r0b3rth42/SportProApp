@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Info
@@ -36,6 +37,7 @@ import com.example.sportproapp.data.model.AppPermission
 import com.example.sportproapp.data.model.DesafioPartido
 import com.example.sportproapp.data.model.EstadoDesafio
 import com.example.sportproapp.data.model.PartidoConDetalles
+import com.example.sportproapp.data.session.UserSessionManager
 import com.example.sportproapp.presentation.auth.*
 import com.example.sportproapp.presentation.components.RequirePermission
 
@@ -165,7 +167,15 @@ fun MatchesScreen(
                                 items(partidos) { partido ->
                                     ItemPartidoProgramado(
                                         partido = partido,
-                                        onClick = { partidoParaDetalle = partido }
+                                        onClick = {
+                                            val session = com.example.sportproapp.data.session.UserSessionManager.getCurrentUser()
+                                            val isPlayer = session?.role?.uppercase() == "JUG"
+                                            if (isPlayer) {
+                                                navController.navigate("asistencia-jugador/${partido.id}/${partido.equipoLocalId}")
+                                            } else {
+                                                partidoParaDetalle = partido
+                                            }
+                                        }
                                     )
                                 }
                                 item { Spacer(modifier = Modifier.height(90.dp)) }
@@ -297,10 +307,13 @@ fun ItemPartidoProgramado(
     partido: PartidoConDetalles,
     onClick: () -> Unit
 ) {
+    val session = UserSessionManager.getCurrentUser()
+    val isPlayer = session?.role?.uppercase() == "JUG"
+
     Card(
         colors = CardDefaults.cardColors(containerColor = DarkCardBackground),
         shape = RoundedCornerShape(18.dp),
-        border = BorderStroke(1.dp, CardBorderColor),
+        border = BorderStroke(1.dp, if (isPlayer) PrimaryLime.copy(alpha = 0.5f) else CardBorderColor),
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
@@ -312,18 +325,47 @@ fun ItemPartidoProgramado(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Surface(
-                    color = Color(0xFF162D24),
-                    shape = RoundedCornerShape(8.dp),
-                    border = BorderStroke(1.dp, CardBorderColor)
-                ) {
-                    Text(
-                        text = partido.tipoPartido,
-                        color = PrimaryLime,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                    )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Surface(
+                        color = Color(0xFF162D24),
+                        shape = RoundedCornerShape(8.dp),
+                        border = BorderStroke(1.dp, CardBorderColor)
+                    ) {
+                        Text(
+                            text = partido.tipoPartido,
+                            color = PrimaryLime,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                        )
+                    }
+
+                    if (isPlayer) {
+                        Surface(
+                            color = Color(0xFF162D24),
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(1.dp, PrimaryLime)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = null,
+                                    tint = PrimaryLime,
+                                    modifier = Modifier.size(13.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "¡Estás Convocado!",
+                                    color = PrimaryLime,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
                 }
 
                 val (estadoTexto, colorEstado) = when (partido.estado.uppercase()) {
@@ -666,6 +708,21 @@ fun DetallePartidoDialog(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Armar Convocatoria", fontWeight = FontWeight.Bold)
                     }
+                }
+
+                Button(
+                    onClick = {
+                        onDismiss()
+                        navController.navigate("asistencia-partido/${partido.id}/${partido.equipoLocalId}")
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = InputBackgroundColor, contentColor = PrimaryLime),
+                    border = BorderStroke(1.dp, PrimaryLime),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Outlined.Event, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Ver Asistencia / Convocados", fontWeight = FontWeight.Bold)
                 }
 
                 Button(
