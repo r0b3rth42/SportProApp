@@ -16,6 +16,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,10 +27,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.sportproapp.data.model.UserRole
 import com.example.sportproapp.data.remote.supabase.UsuarioRepository
+import com.example.sportproapp.data.session.UserSessionManager
 import com.example.sportproapp.presentation.auth.DarkCardBackground
 import com.example.sportproapp.presentation.auth.PrimaryLime
 import com.example.sportproapp.presentation.auth.TextMuted
+import com.example.sportproapp.presentation.components.LocalUserRole
 import com.google.firebase.auth.FirebaseAuth
 import java.time.LocalDate
 import java.time.Period
@@ -46,8 +50,10 @@ fun AppBottomNavigationBar(
     navController: NavController,
     currentRoute: String?
 ) {
-    var userName by remember { mutableStateOf("Usuario") }
-    var userRole by remember { mutableStateOf("JUG") }
+    val activeSession by UserSessionManager.userSession.collectAsState()
+    val localRole = LocalUserRole.current
+    var userName by remember { mutableStateOf(activeSession?.name ?: "Usuario") }
+    var userRole by remember { mutableStateOf(activeSession?.role ?: "JUG") }
 
     // Estado para controlar si el acceso a las demás pestañas está bloqueado
     var isAccountBlocked by remember { mutableStateOf(false) }
@@ -56,29 +62,34 @@ fun AppBottomNavigationBar(
     val currentUser = FirebaseAuth.getInstance().currentUser
 
     // Obtener los datos reales del usuario y verificar vinculación si es jugador
-    LaunchedEffect(currentUser?.uid) {
-        val uid = currentUser?.uid
-        if (uid != null) {
-            val userResult = UsuarioRepository.getUser(uid).getOrNull()
-            userName = userResult?.name?.takeIf { it.isNotBlank() } ?: "Usuario"
-            userRole = userResult?.role?.takeIf { it.isNotBlank() } ?: "JUG"
+    LaunchedEffect(activeSession, currentUser?.uid) {
+        if (activeSession != null) {
+            userName = activeSession?.name?.takeIf { it.isNotBlank() } ?: "Usuario"
+            userRole = activeSession?.role?.takeIf { it.isNotBlank() } ?: "JUG"
+        } else {
+            val uid = currentUser?.uid
+            if (uid != null) {
+                val userResult = UsuarioRepository.getUser(uid).getOrNull()
+                userName = userResult?.name?.takeIf { it.isNotBlank() } ?: "Usuario"
+                userRole = userResult?.role?.takeIf { it.isNotBlank() } ?: "JUG"
+            }
+        }
 
-            // Si es jugador, validamos si es menor de edad y si su vinculación está PENDIENTE
-            if (userRole == "JUG") {
-                val playerProfile = UsuarioRepository.getPlayerProfile(uid).getOrNull()
-                if (playerProfile != null) {
-                    val esMenor = try {
-                        playerProfile.fechaNacimiento?.let { fechaStr ->
-                            val fechaNac = LocalDate.parse(fechaStr)
-                            val hoy = LocalDate.now()
-                            Period.between(fechaNac, hoy).years < 18
-                        } ?: false
-                    } catch (e: Exception) {
-                        false
-                    }
-
-                    isAccountBlocked = esMenor && playerProfile.estadoVinculacion == "PENDIENTE"
+        val uid = currentUser?.uid ?: activeSession?.uid
+        if (uid != null && userRole == "JUG") {
+            val playerProfile = UsuarioRepository.getPlayerProfile(uid).getOrNull()
+            if (playerProfile != null) {
+                val esMenor = try {
+                    playerProfile.fechaNacimiento?.let { fechaStr ->
+                        val fechaNac = LocalDate.parse(fechaStr)
+                        val hoy = LocalDate.now()
+                        Period.between(fechaNac, hoy).years < 18
+                    } ?: false
+                } catch (e: Exception) {
+                    false
                 }
+
+                isAccountBlocked = esMenor && playerProfile.estadoVinculacion == "PENDIENTE"
             }
         }
     }

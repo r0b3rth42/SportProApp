@@ -285,6 +285,7 @@ fun MatchesScreen(
     partidoParaDetalle?.let { partido ->
         DetallePartidoDialog(
             partido = partido,
+            navController = navController,
             onDismiss = { partidoParaDetalle = null }
         )
     }
@@ -458,6 +459,7 @@ fun ItemPartidoProgramado(
 @Composable
 fun DetallePartidoDialog(
     partido: PartidoConDetalles,
+    navController: NavController,
     onDismiss: () -> Unit
 ) {
     AlertDialog(
@@ -646,13 +648,34 @@ fun DetallePartidoDialog(
             }
         },
         confirmButton = {
-            Button(
-                onClick = onDismiss,
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryLime, contentColor = DarkBackground),
-                shape = RoundedCornerShape(10.dp),
-                modifier = Modifier.fillMaxWidth()
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Cerrar", fontWeight = FontWeight.Bold)
+                if (partido.tipoPartido.uppercase() == "AMISTOSO") {
+                    Button(
+                        onClick = {
+                            onDismiss()
+                            navController.navigate("convocatoria-partido/${partido.id}/${partido.equipoLocalId}")
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryLime, contentColor = DarkBackground),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Outlined.SportsSoccer, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Armar Convocatoria", fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                Button(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.buttonColors(containerColor = InputBackgroundColor, contentColor = Color.White),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Cerrar", fontWeight = FontWeight.Bold)
+                }
             }
         }
     )
