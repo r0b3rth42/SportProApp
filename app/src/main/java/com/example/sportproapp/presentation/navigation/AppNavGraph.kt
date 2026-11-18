@@ -53,6 +53,7 @@ import com.example.sportproapp.presentation.mensualidades.MensualidadesScreen
 import com.example.sportproapp.presentation.mensualidades.NuevaMensualidadScreen
 import com.example.sportproapp.presentation.mensualidades.PagarMensualidadScreen
 import com.example.sportproapp.presentation.notificaciones.NotificacionesScreen
+import com.example.sportproapp.presentation.partidos.ConvocatoriaPartidoScreen
 import com.example.sportproapp.presentation.partidos.MatchesScreen
 import com.example.sportproapp.presentation.teams.CreateTeamScreen
 import com.example.sportproapp.presentation.teams.TeamsListScreen
@@ -245,6 +246,22 @@ fun AppNavGraph(
             composable("matches") { MatchesScreen(navController = navController) }
             composable("crear-partido") { CrearPartidoScreen(navController = navController) }
             composable("matches-create-challenge") { EnviarDesafioScreen(navController = navController) }
+            composable(
+                route = "convocatoria-partido/{partidoId}/{equipoId}",
+                arguments = listOf(
+                    navArgument("partidoId") { type = NavType.LongType },
+                    navArgument("equipoId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val partidoId = backStackEntry.arguments?.getLong("partidoId") ?: 0L
+                val equipoId = backStackEntry.arguments?.getString("equipoId") ?: ""
+
+                ConvocatoriaPartidoScreen(
+                    navController = navController,
+                    partidoId = partidoId,
+                    equipoId = equipoId
+                )
+            }
 
             // --- MENSUALIDADES (pago simulado) ---
             composable("payments") { MensualidadesScreen(navController = navController) }
