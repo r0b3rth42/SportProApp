@@ -54,6 +54,7 @@ import com.example.sportproapp.presentation.mensualidades.NuevaMensualidadScreen
 import com.example.sportproapp.presentation.mensualidades.PagarMensualidadScreen
 import com.example.sportproapp.presentation.notificaciones.NotificacionesScreen
 import com.example.sportproapp.presentation.partidos.ConvocatoriaPartidoScreen
+import com.example.sportproapp.presentation.partidos.ConsolaEnVivoScreen
 import com.example.sportproapp.presentation.partidos.MatchesScreen
 import com.example.sportproapp.presentation.teams.CreateTeamScreen
 import com.example.sportproapp.presentation.teams.TeamsListScreen
@@ -260,6 +261,20 @@ fun AppNavGraph(
                     navController = navController,
                     partidoId = partidoId,
                     equipoId = equipoId
+                )
+            }
+
+            composable(
+                route = "consola-envivo/{partidoId}",
+                arguments = listOf(
+                    navArgument("partidoId") { type = NavType.LongType }
+                )
+            ) { backStackEntry ->
+                val partidoId = backStackEntry.arguments?.getLong("partidoId") ?: 0L
+
+                ConsolaEnVivoScreen(
+                    navController = navController,
+                    partidoId = partidoId
                 )
             }
 

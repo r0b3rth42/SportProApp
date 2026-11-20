@@ -393,4 +393,66 @@ object DesafioPartidoRepository {
             Result.failure(e)
         }
     }
+
+    // 10. Obtener detalle completo de un solo partido por su ID
+    suspend fun getPartidoConDetallesById(partidoId: Long): Result<PartidoConDetalles> {
+        return try {
+            val partidos = supabase.from("partido")
+                .select {
+                    filter { eq("id", partidoId) }
+                }
+                .decodeList<Partido>()
+
+            val partido = partidos.firstOrNull()
+                ?: return Result.failure(Exception("No se encontró el partido con ID $partidoId"))
+
+            val relaciones = supabase.from("partido_equipo")
+                .select {
+                    filter { eq("partido_id", partidoId) }
+                }
+                .decodeList<PartidoEquipo>()
+
+            val relLocal = relaciones.firstOrNull { it.condicion == CondicionEquipo.LOCAL }
+            val relVisitante = relaciones.firstOrNull { it.condicion == CondicionEquipo.VISITANTE }
+
+            val equipoLocal = relLocal?.let { rel ->
+                supabase.from("equipos").select { filter { eq("id", rel.equipoId) } }.decodeList<Equipo>().firstOrNull()
+            }
+            val equipoVisitante = relVisitante?.let { rel ->
+                supabase.from("equipos").select { filter { eq("id", rel.equipoId) } }.decodeList<Equipo>().firstOrNull()
+            }
+
+            val sede = supabase.from("sedes").select { filter { eq("id", partido.sedeId) } }.decodeList<Sede>().firstOrNull()
+
+            val desafio = partido.desafioId?.let { dId ->
+                supabase.from("desafio_partido").select { filter { eq("id", dId) } }.decodeList<DesafioPartido>().firstOrNull()
+            }
+
+            val partidoDetalle = PartidoConDetalles(
+                id = partido.id ?: 0,
+                tipoPartido = partido.tipoPartido,
+                fecha = partido.fecha,
+                hora = partido.hora,
+                estado = partido.estado,
+                sedeId = partido.sedeId,
+                sedeNombre = sede?.nombre ?: "Sede Principal",
+                sedeDireccion = sede?.direccion ?: "",
+                equipoLocalId = relLocal?.equipoId ?: "",
+                equipoLocalNombre = equipoLocal?.nombre ?: "Equipo Local",
+                equipoLocalCategoria = equipoLocal?.categoria ?: "",
+                golesLocal = relLocal?.goles,
+                equipoVisitanteId = relVisitante?.equipoId ?: "",
+                equipoVisitanteNombre = equipoVisitante?.nombre ?: "Equipo Visitante",
+                equipoVisitanteCategoria = equipoVisitante?.categoria ?: "",
+                golesVisitante = relVisitante?.goles,
+                desafioId = partido.desafioId,
+                mensajeDesafio = desafio?.mensaje
+            )
+
+            Result.success(partidoDetalle)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error al obtener detalles del partido $partidoId", e)
+            Result.failure(e)
+        }
+    }
 }

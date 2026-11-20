@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Schedule
@@ -658,7 +659,7 @@ fun DetallePartidoDialog(
                             onDismiss()
                             navController.navigate("convocatoria-partido/${partido.id}/${partido.equipoLocalId}")
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryLime, contentColor = DarkBackground),
+                        colors = ButtonDefaults.buttonColors(containerColor = InputBackgroundColor, contentColor = Color.White),
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -666,6 +667,20 @@ fun DetallePartidoDialog(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Armar Convocatoria", fontWeight = FontWeight.Bold)
                     }
+                }
+
+                Button(
+                    onClick = {
+                        onDismiss()
+                        navController.navigate("consola-envivo/${partido.id}")
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryLime, contentColor = DarkBackground),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.PlayCircle, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Consola en Vivo (Incidencias)", fontWeight = FontWeight.Bold)
                 }
 
                 Button(
